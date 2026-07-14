@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QSerialPort>
 #include <QByteArray>
-
+#include <Qtimer>
 
 class SmmManager : public QObject
 {
@@ -19,19 +19,30 @@ public:
     int saturation() const { return m_saturation; }
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
+    // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
+    // el sıkışmasını yapıyor (0xBF,0x5F,0xFF), 0xB2 gibi dokümanda
+    // olmayan bir komut değil.
     Q_INVOKABLE void initializeBiolightModule(); // başlatma komutu fonksiyonu
 
 signals:
     void saturationChanged(int newSaturation);
 private slots:
     void readData(); //UART'a veri geldikçe tetiklenir
+    void sendNextHandshakeByte();
 
 private:
+    void parseBuffer(); //gelen baytları SMM protokolüne göre işler
+    static quint8 calcChecksum(quint8 len, quint8 code, const QByteArray &data);
+    void sendBiolightSpo2Setting(quint8 configByte = 0xB2);
+
     QSerialPort *m_serialPort;
     QByteArray m_buffer;
     int m_saturation;
 
-    void parseBuffer(); //gelen baytları SMM protokolüne göre işler
+    QTimer *m_handshakeTimer;
+    int m_handshakeStep = 0;
+
+
 };
 
 #endif // SMMMANAGER_H
