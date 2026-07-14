@@ -20,6 +20,7 @@ int main(int argc, char *argv[]){
     engine.load(url);
 
     smmManager.connectToModule("COM5"); //Modülün adı bilgisayar bağlantısına göre değişir
-
+    //modülü aktifleştir
+    smmManager.initializeBiolightModule();
     return app.exec();
 }

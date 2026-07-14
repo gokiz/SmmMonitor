@@ -19,6 +19,7 @@ public:
     int saturation() const { return m_saturation; }
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
+    Q_INVOKABLE void initializeBiolightModule(); // başlatma komutu fonksiyonu
 
 signals:
     void saturationChanged(int newSaturation);
