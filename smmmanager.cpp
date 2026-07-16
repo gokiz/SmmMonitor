@@ -10,6 +10,12 @@ SmmManager::SmmManager(QObject *parent)
     m_handshakeTimer->setSingleShot(true);
     connect(m_handshakeTimer, &QTimer::timeout, this, &SmmManager::sendNextHandshakeByte);
 
+    //Watchdog zamanlayıcısının kurulumu
+    m_watchdogTimer = new QTimer(this);
+    m_watchdogTimer->setSingleShot(true);
+    connect(m_watchdogTimer, &QTimer::timeout, this, &SmmManager::onWatchdogTimeout);
+
+
 }
 SmmManager::~SmmManager()
 {
@@ -27,9 +33,12 @@ void SmmManager::connectToModule(const QString &portName) {
 
     if (m_serialPort->open(QIODevice::ReadWrite)){
         qDebug() << "The SMM modul has been successfully connected : " << portName;
+        m_watchdogTimer->start(3000); //port açıldığında 3 saniyelik geri sayımı başlat
     } else {
         qDebug() << "The Port could not be opened!" << m_serialPort->errorString();
     }
+
+
 }
 
 //Modüle "Biolight modunda çalış" talimatı gönderen komut
@@ -101,6 +110,17 @@ void SmmManager::readData(){
     parseBuffer();
 }
 
+//3 saniye boyunca veri gelmezse çalışacak kurtarma fonksiyonu
+void SmmManager::onWatchdogTimeout() {
+    if(m_saturation != 0){
+        m_saturation = 0;
+        emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
+    }
+
+    qDebug() << "[WARNING] Data flow interrupted! Module is being awakened.";
+    initializeBiolightModule(); //el sıkışma komutlarını baştan gönder
+}
+
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
     while(true) {
@@ -144,9 +164,12 @@ void SmmManager::parseBuffer(){
         }
 
         if(code == BIOLIGHT_CODE && data.size() >= 9){
+            //başarılı paket aldık, bekçi zamanlayıcısı sıfırlansın ki modül yeniden başlatılmasın
+            m_watchdogTimer->start(3000);
             const quint8 data0 = static_cast<quint8>(data[0]);
             const bool inSensorOff = (data0 & 0x40) != 0;
             const quint8 rawSpo2 = static_cast<quint8>(data[3]);
+
 
             if(inSensorOff || rawSpo2 == 127){
                 if(m_saturation != 0) {

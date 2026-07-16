@@ -30,7 +30,7 @@ signals:
 private slots:
     void readData(); //UART'a veri geldikçe tetiklenir
     void sendNextHandshakeByte();
-
+    void onWatchdogTimeout(); // Modül uyuduğunda tetiklenecek
 private:
     void parseBuffer(); //gelen baytları SMM protokolüne göre işler
     static quint8 calcChecksum(quint8 len, quint8 code, const QByteArray &data);
@@ -42,6 +42,8 @@ private:
 
     QTimer *m_handshakeTimer;
     int m_handshakeStep = 0;
+
+    QTimer *m_watchdogTimer; // veri akışını denetleyecek zamanlayıcı
 };
 
 #endif // SMMMANAGER_H
