@@ -2,7 +2,7 @@
 #include <QDebug>
 
 SmmManager::SmmManager(QObject *parent)
-    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0)
+    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0)
 {
     connect(m_serialPort, &QSerialPort::readyRead, this, &SmmManager::readData);
 
@@ -33,7 +33,7 @@ void SmmManager::connectToModule(const QString &portName) {
 
     if (m_serialPort->open(QIODevice::ReadWrite)){
         qDebug() << "The SMM modul has been successfully connected : " << portName;
-        m_watchdogTimer->start(3000); //port açıldığında 3 saniyelik geri sayımı başlat
+        m_watchdogTimer->start(1000); //port açıldığında 3 saniyelik geri sayımı başlat
     } else {
         qDebug() << "The Port could not be opened!" << m_serialPort->errorString();
     }
@@ -114,7 +114,9 @@ void SmmManager::readData(){
 void SmmManager::onWatchdogTimeout() {
     if(m_saturation != 0){
         m_saturation = 0;
+        m_pulseRate = 0;
         emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
+        emit pulseRateChanged(m_pulseRate);
     }
 
     qDebug() << "[WARNING] Data flow interrupted! Module is being awakened.";
@@ -165,21 +167,38 @@ void SmmManager::parseBuffer(){
 
         if(code == BIOLIGHT_CODE && data.size() >= 9){
             //başarılı paket aldık, bekçi zamanlayıcısı sıfırlansın ki modül yeniden başlatılmasın
-            m_watchdogTimer->start(3000);
+            m_watchdogTimer->start(1000);
+            //Byte 0:sensör durumu
             const quint8 data0 = static_cast<quint8>(data[0]);
             const bool inSensorOff = (data0 & 0x40) != 0;
+            //byte 3: SpO2 Değeri
             const quint8 rawSpo2 = static_cast<quint8>(data[3]);
+            //byte4 ve byte 5: Pulse Rate değeri MSB vr LSB
+            const quint8 prMsb = static_cast<quint8>(data[4]);
+            const quint8 prLsb = static_cast<quint8>(data[5]);
 
+            //MSB ve LSB birleştirilerek 16 bitlik gerçek nabız değeri elde edilir
+            int rawPulseRate = (prMsb << 8) | prLsb;
 
-            if(inSensorOff || rawSpo2 == 127){
+            //Sensör çıkmışsa, SpO2 127 ise veya Pulse rate 255 ise ölçüm geçersiz
+
+            if(inSensorOff || rawSpo2 == 127 || rawPulseRate == 255){
                 if(m_saturation != 0) {
                     m_saturation = 0;
                     emit saturationChanged(m_saturation);
+                }
+                if(m_pulseRate != 0){
+                    m_pulseRate = 0;
+                    emit pulseRateChanged(m_pulseRate);
                 }
             } else {
                 if(m_saturation != rawSpo2) {
                     m_saturation = rawSpo2;
                     emit saturationChanged(m_saturation);
+                }
+                if(m_pulseRate != rawPulseRate) {
+                    m_pulseRate = rawPulseRate;
+                    emit pulseRateChanged(m_pulseRate);
                 }
             }
         }

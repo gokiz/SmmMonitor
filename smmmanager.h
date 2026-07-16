@@ -12,13 +12,18 @@ class SmmManager : public QObject
     // QML tarafında bu property'i okuyup Rectangle içinde göstereceğiz
     Q_PROPERTY(int saturation READ saturation NOTIFY saturationChanged)
 
+    //Pulse rate içim qml property'leri
+    Q_PROPERTY(int pulseRate READ pulseRATE NOTIFY pulseRateChanged)
+
 public:
     explicit SmmManager(QObject *parent = nullptr);
     ~SmmManager();
 
     int saturation() const { return m_saturation; }
+    int pulseRate()const { return m_pulseRate; }
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
+
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
     // el sıkışmasını yapıyor (0xBF,0x5F,0xFF), 0xB2 gibi dokümanda
     // olmayan bir komut değil.
@@ -26,6 +31,7 @@ public:
 
 signals:
     void saturationChanged(int newSaturation);
+    void pulseRateChanged(int newPulseRate);
 
 private slots:
     void readData(); //UART'a veri geldikçe tetiklenir
@@ -39,6 +45,7 @@ private:
     QSerialPort *m_serialPort;
     QByteArray m_buffer;
     int m_saturation;
+    int m_pulseRate;
 
     QTimer *m_handshakeTimer;
     int m_handshakeStep = 0;
