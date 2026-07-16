@@ -24,7 +24,7 @@ Window {
             spacing: 15
 
             Text {
-                text: "SATURASYON (SpO2"
+                text: "SATURASYON SpO2"
                 color: "#aaaaaa"
                 font.pixelSize: 18
                 font.bold: true

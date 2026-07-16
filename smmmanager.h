@@ -4,13 +4,13 @@
 #include <QObject>
 #include <QSerialPort>
 #include <QByteArray>
-#include <Qtimer>
+#include <QTimer>
 
 class SmmManager : public QObject
 {
     Q_OBJECT
     // QML tarafında bu property'i okuyup Rectangle içinde göstereceğiz
-    Q_PROPERTY(int saturation READ saturation NOTIFY saturationChanged);
+    Q_PROPERTY(int saturation READ saturation NOTIFY saturationChanged)
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -26,6 +26,7 @@ public:
 
 signals:
     void saturationChanged(int newSaturation);
+
 private slots:
     void readData(); //UART'a veri geldikçe tetiklenir
     void sendNextHandshakeByte();
@@ -41,8 +42,6 @@ private:
 
     QTimer *m_handshakeTimer;
     int m_handshakeStep = 0;
-
-
 };
 
 #endif // SMMMANAGER_H

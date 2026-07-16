@@ -13,9 +13,9 @@ SmmManager::SmmManager(QObject *parent)
 }
 SmmManager::~SmmManager()
 {
-        if(m_serialPort->isOpen()){
-            m_serialPort->close();
-        }
+    if(m_serialPort->isOpen()){
+        m_serialPort->close();
+    }
 }
 void SmmManager::connectToModule(const QString &portName) {
     m_serialPort->setPortName(portName);
@@ -26,9 +26,9 @@ void SmmManager::connectToModule(const QString &portName) {
     m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
 
     if (m_serialPort->open(QIODevice::ReadWrite)){
-        qDebug() << "SMM Modülüne başarıyla bağlanıldı: " << portName;
+        qDebug() << "The SMM modul has been successfully connected : " << portName;
     } else {
-        qDebug() << "Port açılamadı!" << m_serialPort->errorString();
+        qDebug() << "The Port could not be opened!" << m_serialPort->errorString();
     }
 }
 
@@ -50,7 +50,7 @@ void SmmManager::sendNextHandshakeByte(){
     case 1: toSend = 0x5F; break;
     case 2: toSend = 0xFF; break;
     default:
-        qDebug() << "El sıkışma tamamlandı, artık paketli veri bekleniyor.";
+        qDebug() << " The handshake has been completed, now waiting for the packetized data.";
         sendBiolightSpo2Setting(0xB2);
         return;
     }
@@ -58,7 +58,7 @@ void SmmManager::sendNextHandshakeByte(){
     char byte = static_cast<char>(toSend);
     m_serialPort->write(&byte, 1);
     m_serialPort->flush();
-    qDebug() << "handshake byte gönderildi -> 0x" + QString::number(toSend,16).toUpper();
+    qDebug() << "handshake byte sent -> 0x" + QString::number(toSend,16).toUpper();
 
     m_handshakeStep++;
     m_handshakeTimer->start(50); // her byte arasında 50 ms bekle
@@ -83,18 +83,9 @@ void SmmManager::sendBiolightSpo2Setting(quint8 configByte) {
     m_serialPort->write(packet);
     m_serialPort->flush();
 
-    qDebug().noquote() << "Biolight setting paketi gönderildi (Hex):" << packet.toHex(' ').toUpper();
+    qDebug().noquote() << "Biolight setting package has been sent (Hex):" << packet.toHex(' ').toUpper();
 }
-void SmmManager::readData(){
-    QByteArray rawData = m_serialPort->readAll();
 
-    //debug kolaylığı: modülden veri akıp akmadığı konsolda gösterilir
-    if(!rawData.isEmpty()){
-        qDebug() << "Gelen Ham Veri(Hex): " << rawData.toHex(' ').toUpper();
-    }
-    m_buffer.append(rawData);
-    parseBuffer();
-}
 quint8 SmmManager::calcChecksum(quint8 len, quint8 code, const QByteArray &data){
     quint32 sum = len + code;
     for (char b : data){
@@ -103,33 +94,42 @@ quint8 SmmManager::calcChecksum(quint8 len, quint8 code, const QByteArray &data)
     return static_cast<quint8>(sum & 0xFF);
 }
 
+void SmmManager::readData(){
+    QByteArray rawData = m_serialPort->readAll();
+    // Ham veriyi yazdıran qDebug kapatıldı. Böylece arayüz kilitlemeyecek.
+    m_buffer.append(rawData);
+    parseBuffer();
+}
+
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
     while(true) {
-        // Gerçek çerçeve başlığını (0xAA, 0x55) ara- 21 değil
-        //21 zaten code alanı, header değil
         int headerIndex = -1;
         for(int i = 0; i + 1 < m_buffer.size(); ++i){
-            if(static_cast<quint8>(m_buffer[i] )== 0xAA &&
+            if(static_cast<quint8>(m_buffer[i]) == 0xAA &&
                 static_cast<quint8>(m_buffer[i + 1]) == 0x55){
                 headerIndex = i;
                 break;
             }
         }
+
         if (headerIndex < 0) {
             if (m_buffer.size() > 1)
-                m_buffer = m_buffer.right(1); // olası yarım 0xAA'yı sakla
+                m_buffer = m_buffer.right(1);
             return;
         }
+
         if(headerIndex > 0)
             m_buffer.remove(0, headerIndex);
+
         if(m_buffer.size() < 3)
-            return; // LEn byte'ı henüz gelmedi
-        const quint8 len = static_cast<quint8>(m_buffer[2]); // code + data uzunluğu
-        const int totalPacketSize = 2 + 1 + len +1 ; // header+len+(code+data) + checksum
+            return;
+
+        const quint8 len = static_cast<quint8>(m_buffer[2]);
+        const int totalPacketSize = 2 + 1 + len + 1;
 
         if(m_buffer.size() < totalPacketSize)
-            return; //paket tam gelmedi,bekle
+            return;
 
         const quint8 code = static_cast<quint8>(m_buffer[3]);
         const QByteArray data = m_buffer.mid(4, len - 1);
@@ -137,32 +137,29 @@ void SmmManager::parseBuffer(){
         const quint8 expectedChecksum = calcChecksum(len, code, data);
 
         if(receivedChecksum != expectedChecksum){
-            qDebug() << "Checksum hatası, paket atlandı. code= " << code;
-            m_buffer.remove(0, totalPacketSize);
+            // ÇOK ÖNEMLİ DEĞİŞİKLİK: Checksum hatası varsa sadece ilk 0xAA baytını siliyoruz.
+            // Böylece gerçek paketi yanlışlıkla silme riskini (sonsuz hata döngüsünü) yok ediyoruz.
+            m_buffer.remove(0, 1);
             continue;
         }
+
         if(code == BIOLIGHT_CODE && data.size() >= 9){
-            //DATA Byte0: bit6= sensör off/on
             const quint8 data0 = static_cast<quint8>(data[0]);
             const bool inSensorOff = (data0 & 0x40) != 0;
-
-            //DATA Byte3: Sp02 (0-100, 127 = geçersiz)
             const quint8 rawSpo2 = static_cast<quint8>(data[3]);
 
-            //terminalde hem hex hem de decimal göster
-            qDebug().noquote() << QString("SpO2 ham bayt -> Hex: 0x%1 Decimal: %2")
-                                      .arg(rawSpo2, 2, 16,QChar('0')).toUpper()
-                                      .arg(rawSpo2);
             if(inSensorOff || rawSpo2 == 127){
                 if(m_saturation != 0) {
                     m_saturation = 0;
                     emit saturationChanged(m_saturation);
-                    qDebug() << "Yeni SpO2 değeri :" << m_saturation;
+                }
+            } else {
+                if(m_saturation != rawSpo2) {
+                    m_saturation = rawSpo2;
+                    emit saturationChanged(m_saturation);
                 }
             }
         }
         m_buffer.remove(0, totalPacketSize);
     }
-
-
 }
