@@ -24,6 +24,10 @@ public:
     // olmayan bir komut değil.
     Q_INVOKABLE void initializeBiolightModule(); // başlatma komutu fonksiyonu
 
+    void injectTestData(const QByteArray &data) {
+        m_buffer.append(data);
+        parseBuffer();
+    }
 signals:
     void saturationChanged(int newSaturation);
 
