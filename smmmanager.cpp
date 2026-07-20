@@ -1,5 +1,6 @@
 #include "smmmanager.h"
 #include <QDebug>
+#include <QDateTime>
 
 SmmManager::SmmManager(QObject *parent)
     : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0)
@@ -15,6 +16,7 @@ SmmManager::SmmManager(QObject *parent)
     m_watchdogTimer->setSingleShot(true);
     connect(m_watchdogTimer, &QTimer::timeout, this, &SmmManager::onWatchdogTimeout);
 
+    initDatabase();
 
 }
 SmmManager::~SmmManager()
@@ -121,6 +123,39 @@ void SmmManager::onWatchdogTimeout() {
     initializeBiolightModule(); //el sıkışma komutlarını baştan gönder
 }
 
+void SmmManager::initDatabase(){
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("SmmData.db");
+
+    if(!db.open()){
+        qDebug() << "The database could not be opened:" << db.lastError().text();
+        return;
+    }
+    QSqlQuery query;
+    QString createTable = "CREATE TABLE IF NOT EXISTS measurements ("
+                          "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                          "timestamp TEXT,"
+                          "spo2 INTEGER,"
+                          "pulse_rate INTEGER)";
+    if(!query.exec(createTable)){
+        qDebug() << "The table could not be opened: " << query.lastError().text();
+    }
+}
+void SmmManager::insertMeasurement(int spo2, int pulseRate) {
+    QSqlQuery query;
+
+    query.prepare("INSERT INTO measurements (timestamp, spo2, pulse_rate) VALUES (:timestamp, :spo2, :pulse_rate)");
+
+
+    query.bindValue(":timestamp", QDateTime::currentDateTime().toString(Qt::ISODate));
+    query.bindValue(":spo2", spo2);
+    query.bindValue(":pulse_rate", pulseRate);
+
+    if (!query.exec()) {
+        qDebug() << "Could not be saved to the database:" << query.lastError().text();
+    }
+}
+
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
     while(true) {
@@ -184,14 +219,16 @@ void SmmManager::parseBuffer(){
                     emit pulseRateChanged(m_pulseRate);
                 }
             } else {
-                if(m_saturation != rawSpo2) {
+                if(m_saturation != rawSpo2 || m_pulseRate != rawPulseRate) {
                     m_saturation = rawSpo2;
-                    emit saturationChanged(m_saturation);
-                }
-                if(m_pulseRate != rawPulseRate){
                     m_pulseRate = rawPulseRate;
+
+                    emit saturationChanged(m_saturation);
                     emit pulseRateChanged(m_pulseRate);
+
+                    insertMeasurement(rawSpo2, rawPulseRate);
                 }
+
             }
         }
         m_buffer.remove(0, totalPacketSize);

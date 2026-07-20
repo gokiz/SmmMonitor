@@ -24,8 +24,8 @@ Window {
     }
 
     //değerlere göre bilgilendirme metni döndüren fonksiyon
-    function getStatusText(val) {
-        if (val === 0) return "Place Your Finger on the Sensor";
+    function getStatusText(type, val) {
+        if (val === undefined || val === null || val === 0) return "Place Your Finger on the Sensor";
 
         if(type === "spo2") {
             if (val >= 95) return "Oxygen Level Normal";
@@ -37,6 +37,7 @@ Window {
             if( val > 100 || (val > 0 && val < 60)) return "Abnormal Pulse Rate";
             return "Critical Pulse Rate";
         }
+        return "--";
     }
 
     Row {
@@ -88,7 +89,7 @@ Window {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 Text {
-                    text: getStatusText(smmManager.saturation, "spo2")
+                    text: getStatusText("spo2", smmManager.saturation)
                     color: getSpo2Color(smmManager.saturation)
                     font.pixelSize: 14
                     font.bold: true
@@ -140,7 +141,7 @@ Window {
 
                 }
                 Text{
-                    text: getStatusText(smmManager.pulseRate, "pulse")
+                    text: getStatusText("pulse", smmManager.pulseRate)
                     color: getPulseColor(smmManager.pulseRate)
                     font.pixelSize: 14
                     font.bold: true

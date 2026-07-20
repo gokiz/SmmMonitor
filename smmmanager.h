@@ -5,6 +5,9 @@
 #include <QSerialPort>
 #include <QByteArray>
 #include <QTimer>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
 
 class SmmManager : public QObject
 {
@@ -52,6 +55,8 @@ private:
     int m_handshakeStep = 0;
 
     QTimer *m_watchdogTimer; // veri akışını denetleyecek zamanlayıcı
+    void initDatabase();
+    void insertMeasurement(int spo2, int pulseRate);
 };
 
 #endif // SMMMANAGER_H
