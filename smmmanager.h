@@ -8,6 +8,8 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QSqlQueryModel>
+
 
 class SmmManager : public QObject
 {
@@ -27,7 +29,8 @@ public:
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
     // el sıkışmasını yapıyor (0xBF,0x5F,0xFF), 0xB2 gibi dokümanda
     // olmayan bir komut değil.
-    Q_INVOKABLE void initializeBiolightModule(); // başlatma komutu fonksiyonu
+    Q_INVOKABLE void initializeBiolightModule();    // başlatma komutu fonksiyonu
+    Q_INVOKABLE QSqlQueryModel *getHistoryModel();
 
     void injectTestData(const QByteArray &data) {
         m_buffer.append(data);
@@ -36,6 +39,7 @@ public:
 signals:
     void saturationChanged(int newSaturation);
     void pulseRateChanged(int newPulseRate);
+
 
 private slots:
     void readData(); //UART'a veri geldikçe tetiklenir
@@ -51,12 +55,15 @@ private:
     int m_saturation;
     int m_pulseRate;
 
+    QSqlQueryModel *m_historyModel = nullptr;
+
     QTimer *m_handshakeTimer;
     int m_handshakeStep = 0;
 
     QTimer *m_watchdogTimer; // veri akışını denetleyecek zamanlayıcı
     void initDatabase();
     void insertMeasurement(int spo2, int pulseRate);
+    void refreshHistoryModel();
 };
 
 #endif // SMMMANAGER_H

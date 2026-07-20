@@ -1,6 +1,9 @@
 #include "smmmanager.h"
 #include <QDebug>
 #include <QDateTime>
+#include <QCoreApplication>
+#include <QStandardPaths>
+#include <QDir>
 
 SmmManager::SmmManager(QObject *parent)
     : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0)
@@ -125,7 +128,12 @@ void SmmManager::onWatchdogTimeout() {
 
 void SmmManager::initDatabase(){
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(dataDir);
+
+    QString dbPath = dataDir + "/SmmData.db";
     db.setDatabaseName("SmmData.db");
+    qDebug() << "DB Path:" << dbPath;
 
     if(!db.open()){
         qDebug() << "The database could not be opened:" << db.lastError().text();
@@ -141,6 +149,13 @@ void SmmManager::initDatabase(){
         qDebug() << "The table could not be opened: " << query.lastError().text();
     }
 }
+
+void SmmManager::refreshHistoryModel(){
+    if(!m_historyModel){
+        return;
+    }
+    m_historyModel->setQuery("SELECT timestamp, spo2, pulse_rate AS pulseRate FROM measurements ORDER BY id DESC");
+}
 void SmmManager::insertMeasurement(int spo2, int pulseRate) {
     QSqlQuery query;
 
@@ -153,7 +168,41 @@ void SmmManager::insertMeasurement(int spo2, int pulseRate) {
 
     if (!query.exec()) {
         qDebug() << "Could not be saved to the database:" << query.lastError().text();
+    } else {
+        emit refreshHistoryModel();
     }
+}
+
+QSqlQueryModel* SmmManager::getHistoryModel() {
+    if(!m_historyModel){
+
+        struct RoleEnableModel : public QSqlQueryModel{
+            QHash<int, QByteArray> roleNames() const override{
+                QHash<int, QByteArray> roles;
+                roles[Qt::UserRole + 1] = "timestamp";
+                roles[Qt::UserRole + 2] = "spo2";
+                roles[Qt::UserRole + 3] = "pulseRate";
+                return roles;
+            }
+            QVariant data (const QModelIndex &index, int role) const override{
+                if(!index.isValid())
+                    return QVariant();
+                int column = -1;
+                switch (role) {
+                    case Qt::UserRole + 1: column = 0; break;
+                    case Qt::UserRole + 2: column = 1; break;
+                    case Qt::UserRole + 3: column = 2; break;
+                }
+                QModelIndex sourceIndex = this->index(index.row(),column);
+                return QSqlQueryModel::data(sourceIndex, Qt::DisplayRole);
+            }
+        };
+        m_historyModel = new RoleEnableModel();
+    }
+    refreshHistoryModel();
+    return m_historyModel;
+
+
 }
 
 void SmmManager::parseBuffer(){
