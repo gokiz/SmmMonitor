@@ -2,7 +2,7 @@
 #include <QDebug>
 
 SmmManager::SmmManager(QObject *parent)
-    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0)
+    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0)
 {
     connect(m_serialPort, &QSerialPort::readyRead, this, &SmmManager::readData);
 
@@ -23,22 +23,21 @@ SmmManager::~SmmManager()
         m_serialPort->close();
     }
 }
+
 void SmmManager::connectToModule(const QString &portName) {
     m_serialPort->setPortName(portName);
-    m_serialPort->setBaudRate(375000); //smm modülüne göre ayarlan
+    m_serialPort->setBaudRate(375000); // smm modülüne göre ayarlan
     m_serialPort->setDataBits(QSerialPort::Data8);
     m_serialPort->setParity(QSerialPort::OddParity);
     m_serialPort->setStopBits(QSerialPort::OneStop);
     m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
 
-    if (m_serialPort->open(QIODevice::ReadWrite)){
+    if (m_serialPort->open(QIODevice::ReadWrite)) {
         qDebug() << "The SMM modul has been successfully connected : " << portName;
-        m_watchdogTimer->start(3000); //port açıldığında 3 saniyelik geri sayımı başlat
+        m_watchdogTimer->start(1000); // port açıldığında 3 saniyelik geri sayımı başlat
     } else {
         qDebug() << "The Port could not be opened!" << m_serialPort->errorString();
     }
-
-
 }
 
 //Modüle "Biolight modunda çalış" talimatı gönderen komut
@@ -112,11 +111,12 @@ void SmmManager::readData(){
 
 //3 saniye boyunca veri gelmezse çalışacak kurtarma fonksiyonu
 void SmmManager::onWatchdogTimeout() {
-    if(m_saturation != 0){
+    if(m_saturation != 0 || m_pulseRate != 0){
         m_saturation = 0;
+        m_pulseRate = 0;
         emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
+        emit pulseRateChanged(m_pulseRate);
     }
-
     qDebug() << "[WARNING] Data flow interrupted! Module is being awakened.";
     initializeBiolightModule(); //el sıkışma komutlarını baştan gönder
 }
@@ -165,21 +165,32 @@ void SmmManager::parseBuffer(){
 
         if(code == BIOLIGHT_CODE && data.size() >= 9){
             //başarılı paket aldık, bekçi zamanlayıcısı sıfırlansın ki modül yeniden başlatılmasın
-            m_watchdogTimer->start(3000);
+            m_watchdogTimer->start(1000);
             const quint8 data0 = static_cast<quint8>(data[0]);
             const bool inSensorOff = (data0 & 0x40) != 0;
             const quint8 rawSpo2 = static_cast<quint8>(data[3]);
 
+            const quint8 prMsb = static_cast<quint8>(data[4]);
+            const quint8 prLsb = static_cast<quint8>(data[5]);
+            int rawPulseRate = (prMsb << 8 | prLsb);
 
-            if(inSensorOff || rawSpo2 == 127){
+            if(inSensorOff || rawSpo2 == 127 || rawPulseRate == 255){
                 if(m_saturation != 0) {
                     m_saturation = 0;
                     emit saturationChanged(m_saturation);
+                }
+                if(m_pulseRate != 0){
+                    m_pulseRate = 0;
+                    emit pulseRateChanged(m_pulseRate);
                 }
             } else {
                 if(m_saturation != rawSpo2) {
                     m_saturation = rawSpo2;
                     emit saturationChanged(m_saturation);
+                }
+                if(m_pulseRate != rawPulseRate){
+                    m_pulseRate = rawPulseRate;
+                    emit pulseRateChanged(m_pulseRate);
                 }
             }
         }
