@@ -84,3 +84,6 @@ CMakeLists.txt.user*
 /.qtcreator/
 build/
 
+.qtc_clangd/
+debug/
+release/
