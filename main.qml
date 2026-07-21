@@ -88,6 +88,15 @@ Window {
                 border.width: 3
                 border.color: getSpo2Color(smmManager.saturation)
 
+                Text{
+                    text: "🫁"
+                    font.pixelSize: 30
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 20
+                    visible: smmManager.beepVoice
+                }
+
                 //nabız animasyon katmanı
                 Rectangle {
                     anchors.fill: parent
@@ -139,6 +148,15 @@ Window {
                 radius: 20
                 border.width: 3
                 border.color: getPulseColor(smmManager.pulseRate)
+
+                Text{
+                    text: "🩷"
+                    font.pixelSize: 30
+                    anchors.top:parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 20
+                    visible: smmManager.beepVoice
+                }
 
                 //nabız animasyonu
                 Rectangle {

@@ -6,7 +6,7 @@
 #include <QDir>
 
 SmmManager::SmmManager(QObject *parent)
-    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0), m_isSignalWeak(false)
+    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0), m_isSignalWeak(false),m_beepVoice(false)
 {
     connect(m_serialPort, &QSerialPort::readyRead, this, &SmmManager::readData);
 
@@ -120,10 +120,12 @@ void SmmManager::onWatchdogTimeout() {
         m_saturation = 0;
         m_pulseRate = 0;
         m_isSignalWeak = false;
+        m_beepVoice = false;
 
         emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
         emit pulseRateChanged(m_pulseRate);
         emit isSignalWeakChanged(m_isSignalWeak);
+        emit beepVoiceChanged(m_beepVoice);
     }
     qDebug() << "[WARNING] Data flow interrupted! Module is being awakened.";
     initializeBiolightModule(); //el sıkışma komutlarını baştan gönder
@@ -255,7 +257,13 @@ void SmmManager::parseBuffer(){
             m_watchdogTimer->start(1000);
             const quint8 data0 = static_cast<quint8>(data[0]);
             const bool inSensorOff = (data0 & 0x40) != 0;
-            const bool isWeak = (data0 & 1 << 4) != 0;
+            const bool isWeak = (data0 & (1 << 4)) != 0;
+            const bool isBeepVoice = (data0 & (1 << 5) ) != 0;
+
+            if(m_beepVoice != isBeepVoice){
+                m_beepVoice = isBeepVoice;
+                emit beepVoiceChanged(m_beepVoice);
+            }
 
             if(m_isSignalWeak != isWeak){
                 m_isSignalWeak = isWeak;
