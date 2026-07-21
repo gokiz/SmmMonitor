@@ -19,6 +19,11 @@ SmmManager::SmmManager(QObject *parent)
     m_watchdogTimer->setSingleShot(true);
     connect(m_watchdogTimer, &QTimer::timeout, this, &SmmManager::onWatchdogTimeout);
 
+    m_reconnectTimer = new QTimer(this);
+    connect(m_reconnectTimer, &QTimer::timeout, this, &SmmManager::tryReconnect);
+
+    connect(m_serialPort, &QSerialPort::errorOccurred, this, &SmmManager::handlePortError);
+
     initDatabase();
 
 }
@@ -30,6 +35,8 @@ SmmManager::~SmmManager()
 }
 
 void SmmManager::connectToModule(const QString &portName) {
+
+    m_lastPortName = portName;
     m_serialPort->setPortName(portName);
     m_serialPort->setBaudRate(375000); // smm modülüne göre ayarlan
     m_serialPort->setDataBits(QSerialPort::Data8);
@@ -39,9 +46,18 @@ void SmmManager::connectToModule(const QString &portName) {
 
     if (m_serialPort->open(QIODevice::ReadWrite)) {
         qDebug() << "The SMM modul has been successfully connected : " << portName;
+
+        if(!m_isPortConnected){
+            m_isPortConnected = true;
+            emit isPortConnectedChanged(m_isPortConnected);
+        }
+        m_reconnectTimer->stop();
         m_watchdogTimer->start(1000); // port açıldığında 1 saniyelik geri sayımı başlat
     } else {
         qDebug() << "The Port could not be opened!" << m_serialPort->errorString();
+        if(!m_reconnectTimer->isActive()){
+            m_reconnectTimer->start(2000);
+        }
     }
 }
 
@@ -208,8 +224,27 @@ QSqlQueryModel* SmmManager::getHistoryModel() {
     }
     refreshHistoryModel();
     return m_historyModel;
+}
 
+void SmmManager::handlePortError(QSerialPort::SerialPortError error){
+    if(error == QSerialPort::ResourceError){
+        qDebug() << "Port connection lost (Cable disconnected)!";
+        m_serialPort->close();
 
+        if(m_isPortConnected){
+            m_isPortConnected = false;
+            emit isPortConnectedChanged(m_isPortConnected);
+        }
+        onWatchdogTimeout();
+
+        m_reconnectTimer->start(2000);
+    }
+}
+void SmmManager::tryReconnect(){
+    if(!m_lastPortName.isEmpty()){
+        qDebug() << "The port is being rescanning: " << m_lastPortName;
+        connectToModule(m_lastPortName);
+    }
 }
 
 void SmmManager::parseBuffer(){

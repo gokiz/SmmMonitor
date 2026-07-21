@@ -26,8 +26,12 @@ Window {
 
     //değerlere göre bilgilendirme metni döndüren fonksiyon
     function getStatusText(type, val) {
-        if (val === undefined || val === null || val === 0) return "Place Your Finger on the Sensor";
-
+        if (val === undefined || val === null || val === 0){
+            if (type === "pulse" && smmManager.isPortConnected && smmManager.pulseSearch) {
+                return "🔍 Pulse Searching...";
+            }
+            return "Place Your Finger on the Sensor";
+        }
         if(type === "spo2") {
             if (val >= 95) return "Oxygen Level Normal";
             if (val >= 90) return "Low Oxygen Level";
@@ -40,15 +44,47 @@ Window {
         }
         return "--";
     }
-    Text {
+    //sensör açık/kapalı gösterimi
+    Row {
+        id:sensorStatusRow
         anchors.top: parent.top
-        anchors.left: parent.left
+        anchors.left:parent.left
         anchors.margins: 15
-        text: "Signal Normal"
+        spacing: 10
+        Rectangle {
+            width:12
+            height: 12
+            radius: 6
+            color: smmManager.isPortConnected ? "#10b981" : "#ef4444"
+            anchors.verticalCenter: parent.verticalCenter
+
+            SequentialAnimation on opacity {
+                loops: Animation.Infinite
+                running: !smmManager.isPortConnected
+                NumberAnimation {to: 0.2; duration: 500}
+                NumberAnimation {to: 1.0; duration: 500}
+            }
+        }
+        Text{
+            text: smmManager.isPortConnected ? "Sensor On" : "Sensor Off"
+            color: smmManager.isPortConnected ? "#10b981" : "#ef4444"
+            font.pixelSize: 14
+            font.bold: true
+            anchors.verticalCenter: parent.verticalCenter
+        }
+    }
+    //Signal yazısı
+    Text{
+        anchors.top: sensorStatusRow.bottom
+        anchors.left:parent.left
+        anchors.topMargin: 8 //iki yazı arası boşluk
+        anchors.leftMargin: 15
+        text:"Signal Normal"
         color: "#10b981"
         font.pixelSize: 14
         font.bold: true
-        visible: !smmManager.isSignalWeak
+        //hem sinyal zayıf olmayacak hem de port bağlı olacak
+        visible: !smmManager.isSignalWeak && smmManager.isPortConnected
     }
 
     Column{
@@ -200,15 +236,6 @@ Window {
                         font.bold: true
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
-                }
-                Text{
-                    text: "Searching..."
-                    color:  "pink"
-                    font.pixelSize: 14
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottom: parent.bottom
-                    anchors.margins: 15
-                    visible: smmManager.pulseSearch
                 }
             }
         }
