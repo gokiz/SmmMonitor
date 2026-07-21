@@ -6,7 +6,7 @@
 #include <QDir>
 
 SmmManager::SmmManager(QObject *parent)
-    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0)
+    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0), m_isSignalWeak(false)
 {
     connect(m_serialPort, &QSerialPort::readyRead, this, &SmmManager::readData);
 
@@ -39,7 +39,7 @@ void SmmManager::connectToModule(const QString &portName) {
 
     if (m_serialPort->open(QIODevice::ReadWrite)) {
         qDebug() << "The SMM modul has been successfully connected : " << portName;
-        m_watchdogTimer->start(1000); // port açıldığında 3 saniyelik geri sayımı başlat
+        m_watchdogTimer->start(1000); // port açıldığında 1 saniyelik geri sayımı başlat
     } else {
         qDebug() << "The Port could not be opened!" << m_serialPort->errorString();
     }
@@ -116,11 +116,14 @@ void SmmManager::readData(){
 
 //3 saniye boyunca veri gelmezse çalışacak kurtarma fonksiyonu
 void SmmManager::onWatchdogTimeout() {
-    if(m_saturation != 0 || m_pulseRate != 0){
+    if(m_saturation != 0 || m_pulseRate != 0 || m_isSignalWeak){
         m_saturation = 0;
         m_pulseRate = 0;
+        m_isSignalWeak = false;
+
         emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
         emit pulseRateChanged(m_pulseRate);
+        emit isSignalWeakChanged(m_isSignalWeak);
     }
     qDebug() << "[WARNING] Data flow interrupted! Module is being awakened.";
     initializeBiolightModule(); //el sıkışma komutlarını baştan gönder
@@ -252,11 +255,17 @@ void SmmManager::parseBuffer(){
             m_watchdogTimer->start(1000);
             const quint8 data0 = static_cast<quint8>(data[0]);
             const bool inSensorOff = (data0 & 0x40) != 0;
-            const quint8 rawSpo2 = static_cast<quint8>(data[3]);
+            const bool isWeak = (data0 & 1 << 4) != 0;
 
+            if(m_isSignalWeak != isWeak){
+                m_isSignalWeak = isWeak;
+                qDebug() << ">>> Signal Status Changed -> Weak Signal:" << m_isSignalWeak;
+                emit isSignalWeakChanged(m_isSignalWeak);
+            }
+            const quint8 rawSpo2 = static_cast<quint8>(data[3]);
             const quint8 prMsb = static_cast<quint8>(data[4]);
             const quint8 prLsb = static_cast<quint8>(data[5]);
-            int rawPulseRate = (prMsb << 8 | prLsb);
+            int rawPulseRate = (prMsb << 8 | prLsb);     
 
             if(inSensorOff || rawSpo2 == 127 || rawPulseRate == 255){
                 if(m_saturation != 0) {

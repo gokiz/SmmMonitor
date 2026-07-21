@@ -17,6 +17,7 @@ class SmmManager : public QObject
     // QML tarafında bu property'i okuyup Rectangle içinde göstereceğiz
     Q_PROPERTY(int saturation READ saturation NOTIFY saturationChanged)
     Q_PROPERTY(int pulseRate READ pulseRate  NOTIFY pulseRateChanged )
+    Q_PROPERTY(bool isSignalWeak READ isSignalWeak  NOTIFY isSignalWeakChanged)
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -24,6 +25,7 @@ public:
 
     int saturation() const { return m_saturation; }
     int pulseRate() const {return m_pulseRate; }
+    bool isSignalWeak() const {return m_isSignalWeak; }
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
@@ -39,6 +41,7 @@ public:
 signals:
     void saturationChanged(int newSaturation);
     void pulseRateChanged(int newPulseRate);
+    void isSignalWeakChanged(bool isSignalWeak);
 
 
 private slots:
@@ -54,6 +57,7 @@ private:
     QByteArray m_buffer;
     int m_saturation;
     int m_pulseRate;
+    bool m_isSignalWeak = false;
 
     QSqlQueryModel *m_historyModel = nullptr;
 

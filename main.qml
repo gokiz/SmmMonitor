@@ -40,10 +40,39 @@ Window {
         }
         return "--";
     }
+    Text {
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.margins: 15
+        text: "Signal Normal"
+        color: "#10b981"
+        font.pixelSize: 14
+        font.bold: true
+        visible: !smmManager.isSignalWeak
+    }
 
     Column{
         anchors.centerIn: parent
         spacing: 40
+
+        Rectangle{
+            width: 670
+            height: 45
+            color: "#ef4444"
+            radius: 12
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: smmManager.isSignalWeak
+            Row{
+                anchors.centerIn: parent
+                spacing: 10
+                Text{
+                    text:  "CRITICAL: WEAK SIGNAL DETECTED!"
+                    color: "#ffffff"
+                    font.pixelSize: 15
+                    font.bold: true
+                }
+            }
+        }
 
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
