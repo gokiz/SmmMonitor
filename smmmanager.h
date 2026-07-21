@@ -19,6 +19,8 @@ class SmmManager : public QObject
     Q_PROPERTY(int pulseRate READ pulseRate  NOTIFY pulseRateChanged )
     Q_PROPERTY(bool isSignalWeak READ isSignalWeak  NOTIFY isSignalWeakChanged)
     Q_PROPERTY(bool beepVoice READ beepVoice NOTIFY beepVoiceChanged)
+    Q_PROPERTY(bool pulseSearch READ pulseSearch NOTIFY pulseSearchChanged)
+
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -28,6 +30,7 @@ public:
     int pulseRate() const {return m_pulseRate; }
     bool isSignalWeak() const {return m_isSignalWeak; }
     bool beepVoice() const {return m_beepVoice; }
+    bool pulseSearch() const {return m_pulseSearch; }
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
@@ -45,6 +48,7 @@ signals:
     void pulseRateChanged(int newPulseRate);
     void isSignalWeakChanged(bool isSignalWeak);
     void beepVoiceChanged(bool beepVoice);
+    void pulseSearchChanged(bool pulseSearch);
 
 
 private slots:
@@ -62,6 +66,8 @@ private:
     int m_pulseRate;
     bool m_isSignalWeak = false;
     bool m_beepVoice = false;
+    bool m_pulseSearch = false;
+
 
     QSqlQueryModel *m_historyModel = nullptr;
 

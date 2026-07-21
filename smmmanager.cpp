@@ -121,11 +121,13 @@ void SmmManager::onWatchdogTimeout() {
         m_pulseRate = 0;
         m_isSignalWeak = false;
         m_beepVoice = false;
+        m_pulseSearch = false;
 
         emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
         emit pulseRateChanged(m_pulseRate);
         emit isSignalWeakChanged(m_isSignalWeak);
         emit beepVoiceChanged(m_beepVoice);
+        emit pulseSearchChanged(m_pulseSearch);
     }
     qDebug() << "[WARNING] Data flow interrupted! Module is being awakened.";
     initializeBiolightModule(); //el sıkışma komutlarını baştan gönder
@@ -259,6 +261,12 @@ void SmmManager::parseBuffer(){
             const bool inSensorOff = (data0 & 0x40) != 0;
             const bool isWeak = (data0 & (1 << 4)) != 0;
             const bool isBeepVoice = (data0 & (1 << 5) ) != 0;
+            const bool currentPulseSearch = (data0 & (1 << 7)) != 0;
+
+            if(m_pulseSearch != currentPulseSearch){
+                m_pulseSearch = currentPulseSearch;
+                emit pulseSearchChanged(m_pulseSearch);
+            }
 
             if(m_beepVoice != isBeepVoice){
                 m_beepVoice = isBeepVoice;

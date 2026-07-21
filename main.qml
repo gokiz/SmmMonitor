@@ -90,7 +90,7 @@ Window {
 
                 Text{
                     text: "🫁"
-                    font.pixelSize: 30
+                    font.pixelSize: 40
                     anchors.top: parent.top
                     anchors.right: parent.right
                     anchors.margins: 20
@@ -151,7 +151,7 @@ Window {
 
                 Text{
                     text: "🩷"
-                    font.pixelSize: 30
+                    font.pixelSize: 40
                     anchors.top:parent.top
                     anchors.right: parent.right
                     anchors.margins: 20
@@ -177,6 +177,7 @@ Window {
                 Column {
                     anchors.centerIn: parent
                     spacing: 20
+
                     Text{
                         text: "Pulse Rate (bpm)"
                         color: "#b0e2ff"
@@ -199,6 +200,15 @@ Window {
                         font.bold: true
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
+                }
+                Text{
+                    text: "Searching..."
+                    color:  "pink"
+                    font.pixelSize: 14
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottom: parent.bottom
+                    anchors.margins: 15
+                    visible: smmManager.pulseSearch
                 }
             }
         }
