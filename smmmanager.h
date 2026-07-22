@@ -19,6 +19,7 @@ class SmmManager : public QObject
     Q_PROPERTY(int pulseRate READ pulseRate  NOTIFY pulseRateChanged )
     Q_PROPERTY(bool isSignalWeak READ isSignalWeak  NOTIFY isSignalWeakChanged)
     Q_PROPERTY(bool beepVoice READ beepVoice NOTIFY beepVoiceChanged)
+    Q_PROPERTY(bool pulseSearch READ pulseSearch NOTIFY pulseSearchChanged )
     Q_PROPERTY(bool isPortConnected READ isPortConnected NOTIFY isPortConnectedChanged)
 
 

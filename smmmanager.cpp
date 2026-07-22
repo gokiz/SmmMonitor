@@ -316,7 +316,7 @@ void SmmManager::parseBuffer(){
             const quint8 rawSpo2 = static_cast<quint8>(data[3]);
             const quint8 prMsb = static_cast<quint8>(data[4]);
             const quint8 prLsb = static_cast<quint8>(data[5]);
-            int rawPulseRate = (prMsb << 8 | prLsb);     
+            int rawPulseRate = (prMsb << 8 | prLsb);
 
             if(inSensorOff || rawSpo2 == 127 || rawPulseRate == 255){
                 if(m_saturation != 0) {

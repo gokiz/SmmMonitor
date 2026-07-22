@@ -25,14 +25,14 @@ Window {
     }
 
     //değerlere göre bilgilendirme metni döndüren fonksiyon
-    function getStatusText(type, val) {
-        if (val === undefined || val === null || val === 0){
-            if (type === "pulse" && smmManager.isPortConnected && smmManager.pulseSearch) {
-                return "🔍 Pulse Searching...";
-            }
+    function getStatusText(type, val, isPortConnected, pulseSearch) {
+        if(type === "pulse" && isPortConnected && pulseSearch) {
+            return "Searching for Pulse...";
+        }
+        if(val === undefined || val === null || val === 0){
             return "Place Your Finger on the Sensor";
         }
-        if(type === "spo2") {
+        if(type === "spo2"){
             if (val >= 95) return "Oxygen Level Normal";
             if (val >= 90) return "Low Oxygen Level";
             return "Critical Oxygen Level";
@@ -85,6 +85,34 @@ Window {
         font.bold: true
         //hem sinyal zayıf olmayacak hem de port bağlı olacak
         visible: !smmManager.isSignalWeak && smmManager.isPortConnected
+    }
+    //veritabanı butonu
+    Rectangle{
+        id: dbButton
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.margins: 15
+        width:130
+        height:49
+        color: "#473c8b"
+        radius: 10
+        border.color:"#b0e2ff"
+        border.width: 1
+
+        Text{
+            text:"Show the Data"
+            color: "#ffffff"
+            font.pixelSize: 14
+            font.bold: true
+            anchors.centerIn: parent
+        }
+        MouseArea{
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor // fare ile üzerine gelince el gbi görünsün diye
+            onClicked: {
+                dbWindow.show()
+            }
+        }
     }
 
     Column{
@@ -168,7 +196,7 @@ Window {
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
                     Text {
-                        text: getStatusText("spo2", smmManager.saturation)
+                        text: getStatusText("spo2", smmManager.saturation, smmManager.isPortConnected, smmManager.pulseSearch)
                         color: getSpo2Color(smmManager.saturation)
                         font.pixelSize: 14
                         font.bold: true
@@ -230,7 +258,7 @@ Window {
 
                     }
                     Text{
-                        text: getStatusText("pulse", smmManager.pulseRate)
+                        text: getStatusText("pulse", smmManager.pulseRate, smmManager.isPortConnected, smmManager.pulseSearch)
                         color: getPulseColor(smmManager.pulseRate)
                         font.pixelSize: 14
                         font.bold: true
@@ -239,50 +267,9 @@ Window {
                 }
             }
         }
-        ListView {
-            id: historyList
-            width: 670
-            height: 200
-            spacing: 8
-            clip: true
-            anchors.horizontalCenter: parent.horizontalCenter
 
-            model: smmManager.getHistoryModel()
-
-
-            delegate: Rectangle{
-                width: historyList.width
-                height: 45
-                color: "#8b658b"
-                radius: 20
-                border.width: 1
-                border.color: "#334155"
-
-                Row{
-                    anchors.fill: parent
-                    anchors.margins: 12
-                    spacing: 50
-
-                    Text {
-                        text: model.timestamp !== undefined ? model.timestamp : " " //veritabanından gelen zamanlayıcı
-                        color: "#473c8b"
-                        font.pixelSize: 14
-                        font.bold: true
-                    }
-                    Text{
-                        text: "SpO2: %" + model.spo2 //veritabanından gelen spo2
-                        color: root.getSpo2Color(model.spo2 !== undefined ? model.spo2 : "--")
-                        font.pixelSize: 14
-                        font.bold: true
-                    }
-                    Text {
-                        text:"Pulse: " + model.pulseRate + " bpm" //veritabanından gelen pulse rate
-                        color: root.getPulseColor(model.pulseRate !== undefined ? model.pulseRate : "--")
-                        font.pixelSize: 14
-                        font.bold: true
-                    }
-                }
-            }
-        }
     }
+    DatabaseWindow {
+            id: dbWindow
+        }
 }
