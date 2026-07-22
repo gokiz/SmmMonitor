@@ -21,10 +21,53 @@ Window {
         if (val > 100 || (val > 0 && val < 60)) return "#f59e0b";
         return "#ef4444";
     }
+
+    Item {
+        id:headerArea
+        width:  parent.width
+        height: 70
+        anchors.top: parent.top
+
+        Rectangle{
+            id: backButton
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.rightMargin: 35
+            width: 100
+            height: 40
+            color: "#473c8b"
+            radius: 10
+            border.color: "#b0e2ff"
+            border.width: 1
+
+
+            Text{
+                text:"Back"
+                color:"#ffffff"
+                font.pixelSize: 14
+                font.bold: true
+                anchors.centerIn: parent
+            }
+            MouseArea{
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    dbWindow.hide()
+                }
+            }
+
+        }
+    }
+
     ListView {
         id: historyList
-        anchors.fill: parent
+        anchors.top: headerArea.bottom
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.left: parent.left
+
         anchors.margins: 20
+        anchors.topMargin: 10
         spacing: 8
         clip: true
         anchors.horizontalCenter: parent.horizontalCenter
