@@ -246,6 +246,32 @@ void SmmManager::tryReconnect(){
         connectToModule(m_lastPortName);
     }
 }
+void SmmManager::filterHistoryByDate(const QString &startDate, const QString &endDate) {
+    if(!m_historyModel) return;
+
+    // Arayüzdeki metin kutularından (örneğin "2026-07-20") gelen tarihe,
+    // günün başlangıç ve bitiş saatlerini (T00:00:00) manuel olarak ekliyoruz.
+    QString startStr = startDate + "T00:00:00";
+    QString endStr = endDate + "T23:59:59";
+
+    // bindValue() KULLANMIYORUZ. Bunun yerine %1 ve %2 ile tarihleri sorguya gömüyoruz.
+    // DİKKAT: %1 ve %2'nin etrafındaki tek tırnaklar ('%1') SQLite için çok önemlidir.
+    QString queryString = QString("SELECT timestamp, spo2, pulse_rate AS pulseRate "
+                                  "FROM measurements "
+                                  "WHERE timestamp >= '%1' AND timestamp <= '%2' "
+                                  "ORDER BY id DESC").arg(startStr, endStr);
+
+    // Sorguyu doğrudan modele veriyoruz
+    m_historyModel->setQuery(queryString);
+
+    // Hata varsa konsola yazdır
+    if (m_historyModel->lastError().isValid()) {
+        qDebug() << "Filtering Error:" << m_historyModel->lastError().text();
+    }
+}
+void SmmManager::clearFilter(){
+    refreshHistoryModel();
+}
 
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15

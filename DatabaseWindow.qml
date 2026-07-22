@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
+import QtQuick.Controls 2.15
 
 Window {
     id:dbWindow
@@ -28,8 +29,80 @@ Window {
         height: 70
         anchors.top: parent.top
 
-        Rectangle{
-            id: backButton
+        //sola dayalı filtreleme alanı:
+        Row{
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.margins: 20
+            spacing: 15
+
+            TextField {
+                id: startDateInput
+                width: 120
+                height: 40
+                placeholderText: "YYYY-MM-DD"
+                font.pixelSize: 14
+            }
+            Text {
+                text: "-"
+                color: "#ffffff"
+                font.pixelSize: 14
+                font.bold: true
+                anchors.verticalCenter: parent.verticalCenter
+            }
+            TextField{
+                id: endDateInput
+                width: 120
+                height: 40
+                placeholderText: "YYYY-MM-DD"
+                font.pixelSize: 14
+            }
+            //filtreleme butonu
+            Rectangle {
+                width: 90
+                height: 40
+                color: "#4ff9c1" //yesil
+                radius: 10
+                Text{
+                    text: "Filter"
+                    color: "#ffffff"
+                    font.bold: true
+                    anchors.centerIn: parent
+                }
+                MouseArea{
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        smmManager.filterHistoryByDate(startDateInput.text, endDateInput.text)
+                    }
+                }
+            }
+            //temizleme butonu
+            Rectangle{
+                width: 90
+                height: 40
+                color: "#fc3f3f" //kırmızı
+                radius: 10
+                Text{
+                    text: "Clear"
+                    color:  "#ffffff"
+                    font.bold: true
+                    anchors.centerIn: parent
+                }
+                MouseArea{
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        startDateInput.text = "-"
+                        endDateInput.text = "-"
+                        smmManager.clearFilter()
+                    }
+                }
+            }
+        }
+        //back tuşu
+        Rectangle {
+            id:backButton
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             anchors.rightMargin: 35
@@ -38,24 +111,22 @@ Window {
             color: "#473c8b"
             radius: 10
             border.color: "#b0e2ff"
-            border.width: 1
-
+            border.width:1
 
             Text{
-                text:"Back"
-                color:"#ffffff"
+                text: "Back"
+                color: "#ffffff"
                 font.pixelSize: 14
                 font.bold: true
                 anchors.centerIn: parent
             }
-            MouseArea{
+            MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     dbWindow.hide()
                 }
             }
-
         }
     }
 
@@ -70,7 +141,7 @@ Window {
         anchors.topMargin: 10
         spacing: 8
         clip: true
-        anchors.horizontalCenter: parent.horizontalCenter
+
 
         model: smmManager.getHistoryModel()
 
