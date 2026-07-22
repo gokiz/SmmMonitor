@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
 
 Window {
     id:dbWindow
@@ -40,8 +41,21 @@ Window {
                 id: startDateInput
                 width: 120
                 height: 40
-                placeholderText: "YYYY-MM-DD"
+                placeholderText: "Choose Date"
                 font.pixelSize: 14
+                readOnly: true
+
+                horizontalAlignment: TextInput.AlignHCenter
+                verticalAlignment: TextInput.AlignVCenter
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        calendarPopup.targetField = startDateInput
+                        calendarPopup.open();
+                    }
+                }
             }
             Text {
                 text: "-"
@@ -54,8 +68,21 @@ Window {
                 id: endDateInput
                 width: 120
                 height: 40
-                placeholderText: "YYYY-MM-DD"
+                placeholderText: "Choose Date"
                 font.pixelSize: 14
+                readOnly: true //klavye açılmasını engeller
+
+                horizontalAlignment: TextInput.AlignHCenter
+                verticalAlignment: TextInput.AlignVCenter
+
+                MouseArea{
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        calendarPopup.targetField = endDateInput
+                        calendarPopup.open()
+                    }
+                }
             }
             //filtreleme butonu
             Rectangle {
@@ -160,7 +187,7 @@ Window {
                 spacing: 50
 
                 Text {
-                    text: model.timestamp !== undefined ? model.timestamp : " " //veritabanından gelen zamanlayıcı
+                    text: model.timestamp !== undefined ? model.timestamp.replace("T", " ") : " " //veritabanından gelen zamanlayıcı
                     color: "#473c8b"
                     font.pixelSize: 14
                     font.bold: true
@@ -212,6 +239,169 @@ Window {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     smmManager.clearHistory();
+                }
+            }
+        }
+    }
+    Popup{
+        id:calendarPopup
+        width:300
+        height:320
+        modal: true//arka planı karartır ve tıklamayı engeller
+        anchors.centerIn: parent
+        background: Rectangle {color: "#1e293b"; radius: 15; border.color: "#b0e2ff"; border.width: 2 }
+
+        property var targetField: null // seçilen tarihin yazılacağı kutu
+        property var years: ["2025", "2026", "2027", "2028", "2029", "2030"]
+        property var months: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 15
+            spacing: 20
+            Text{
+                text: "Choose Date"
+                color: "#ffffff"
+                font.bold: true
+                font.pixelSize: 18
+                Layout.alignment: Qt.AlignHCenter
+            }
+
+            //tarih çarkları-yıl-ay-gün
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                spacing: 15
+
+                Tumbler {
+                    id: yearTumbler
+                    model: calendarPopup.years
+                    currentIndex: 1 //Varsayılan olarak 2026'yı seçili getirir
+                    visibleItemCount: 3
+                    Layout.preferredHeight: 120
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onPressed: {
+                            yearTumbler.forceActiveFocus()
+                            mouse.accepted = false ;
+                        }
+                    }
+                    activeFocusOnTab: true
+                    Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
+                    Keys.onDownPressed: cureentIndex = Math.min(count - 1, currentIndex + 1)
+
+
+                    WheelHandler {
+                        onWheel: (wheel)=> {
+                                     if(wheel.angleDelta.y > 0) { yearTumbler.currentIndex = Math.max(0, yearTumbler.currentIndex - 1) }
+                                     else { yearTumbler.currentIndex = Math.min(yearTumbler.count - 1, yearTumbler.currentIndex + 1) }
+                                 }
+                    }
+
+                    delegate: Text{
+                        text: modelData
+                        color: yearTumbler.currentIndex === index ? "#10b981" : "#473c8b"
+                        font.pixelSize: yearTumbler.currentIndex === index ? 22 : 16
+                        font.bold: yearTumbler.currentIndex === index
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+                //ay çarkı
+                Tumbler {
+                    id: monthTumbler
+                    model: calendarPopup.months
+                    visibleItemCount: 3
+                    Layout.preferredHeight: 120
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onPressed: {
+                            monthTumbler.forceActiveFocus()
+                            mouse.accepted = false ;
+                        }
+                    }
+                    activeFocusOnTab: true
+                    Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
+                    Keys.onDownPressed: cureentIndex = Math.min(count - 1, currentIndex + 1)
+
+                    WheelHandler {
+                        onWheel: (wheel)=> {
+                                     if(wheel.angleDelta.y > 0) { monthTumbler.currentIndex = Math.max(0, monthTumbler.currentIndex - 1) }
+                                     else { monthTumbler.currentIndex = Math.min(monthTumbler.count - 1, monthTumbler.currentIndex + 1) }
+                                 }
+                    }
+
+                    delegate: Text {
+                        text: modelData
+                        color: monthTumbler.currentIndex === index ? "#10b981" : "#473c8b"
+                        font.pixelSize: monthTumbler.currentIndex === index ? 22 : 16
+                        font.bold: monthTumbler.currentIndex === index
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+                //gün çarkı
+                Tumbler {
+                    id: dayTumbler
+                    model : 31
+                    visibleItemCount: 3
+                    Layout.preferredHeight: 120
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onPressed: {
+                            dayTumbler.forceActiveFocus()
+                            mouse.accepted = false ;
+                        }
+                    }
+                    activeFocusOnTab: true
+                    Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
+                    Keys.onDownPressed: cureentIndex = Math.min(count - 1, currentIndex + 1)
+
+                    WheelHandler {
+                        onWheel: (wheel) => {
+                                     if (wheel.angleDelta.y > 0) dayTumbler.currentIndex = Math.max(0, dayTumbler.currentIndex - 1)
+                                     else dayTumbler.currentIndex = Math.min(dayTumbler.count - 1, dayTumbler.currentIndex + 1)
+                                 }
+                    }
+
+                    delegate: Text {
+                        text: (modelData + 1).toString().padStart(2, '0') // 1'i "01" yapar
+                        color: dayTumbler.currentIndex === index ? "#10b981" : "$473c8b"
+                        font.pixelSize: dayTumbler.currentIndex === index ? 22 : 16
+                        font.bold: dayTumbler.currentIndex === index
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+            }
+            //onayla butonu
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 45
+                color: "#0ea5e9"
+                radius: 10
+
+                Text{
+                    text: "Apply"
+                    color: "#ffffff"
+                    font.bold: true
+                    font.pixelSize: 16
+                    anchors.centerIn: parent
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if(calendarPopup.targetField) {
+                            let y = calendarPopup.years[yearTumbler.currentIndex]
+                            let m = calendarPopup.months[monthTumbler.currentIndex]
+                            let d = (dayTumbler.currentIndex + 1).toString().padStart(2, '0')
+                            calendarPopup.targetField.text = y + "-" + m + "-" + d
+                        }
+                        calendarPopup.close()
+                    }
                 }
             }
         }
