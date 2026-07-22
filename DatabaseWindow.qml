@@ -133,7 +133,7 @@ Window {
     ListView {
         id: historyList
         anchors.top: headerArea.bottom
-        anchors.bottom: parent.bottom
+        anchors.bottom: footerArea.top
         anchors.right: parent.right
         anchors.left: parent.left
 
@@ -176,6 +176,42 @@ Window {
                     color: dbWindow.getPulseColor(model.pulseRate !== undefined ? model.pulseRate : "--")
                     font.pixelSize: 14
                     font.bold: true
+                }
+            }
+        }
+    }
+    Item{
+        id: footerArea
+        width: parent.width
+        height: 70
+        anchors.bottom: parent.bottom
+        // silme tuşu
+        Rectangle {
+            id: deleteAllButton
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: 20
+
+
+            width: 100
+            height: 40
+            color: "#991b1b"
+            radius: 10
+            border.color: "#ef4444"
+            border.width: 1
+
+
+            Text{
+                text: "Delete All"
+                color: "#ffffff"
+                font.bold: true
+                anchors.centerIn: parent
+            }
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    smmManager.clearHistory();
                 }
             }
         }

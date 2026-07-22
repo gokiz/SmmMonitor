@@ -273,6 +273,20 @@ void SmmManager::clearFilter(){
     refreshHistoryModel();
 }
 
+void SmmManager::clearHistory(){
+    QSqlQuery query;
+
+    //measurements tablosundaki tüm verileri siler
+    if(!query.exec("DELETE FROM measurements")) {
+        qDebug() << "Database Delection Error: " << query.lastError().text();
+    }else {
+        query.exec("DELETE FROM sqlite_sequence WHERE  name = 'measurements' ");
+        qDebug() << "The database history has been successfully deleted.";
+
+        refreshHistoryModel();
+    }
+}
+
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
     while(true) {
