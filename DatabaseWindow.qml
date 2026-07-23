@@ -300,21 +300,37 @@ Window {
                     WheelHandler {
                         onWheel: (wheel) => {
                                      yearTumbler.forceActiveFocus()
-                                     if(wheel.angleDelta.y > 0) currentIndex = Math.max(0, currentIndex - 1)
-                                     else currentIndex = Math.min(count - 1, currentIndex + 1)
+                                     if(wheel.angleDelta.y > 0) yearTumbler.currentIndex = Math.max(0, yearTumbler.currentIndex - 1)
+                                     else yearTumbler.currentIndex = Math.min(yearTumbler.count - 1, yearTumbler.currentIndex + 1)
                                  }
                     }
 
-                    delegate: Text {
-                        text: modelData
-                        // Rengi artık doğrudan bizim manuel değişkenimize (activeTumbler) göre alır
-                        color: yearTumbler.currentIndex === index ? (calendarPopup.activeTumbler === yearTumbler ? "#ec4899" : "#aaaaff") : "#473c8b"
-                        font.pixelSize: yearTumbler.currentIndex === index ? 22 : 16
-                        font.bold: yearTumbler.currentIndex === index
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+
+                    delegate: Item {
+                        width: yearTumbler.width
+                        height: 40
+
+                        Text{
+                            anchors.fill: parent
+                            text: modelData
+                            color: yearTumbler.currentIndex === index ? (calendarPopup.activeTumbler === yearTumbler ? "#008080" : "#be185d") : "#473c8b"
+                            font.pixelSize: yearTumbler.currentIndex === index ? 22 : 16
+                            font.bold: yearTumbler.currentIndex === index
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                yearTumbler.forceActiveFocus()
+                                calendarPopup.activeTumbler = yearTumbler
+                                yearTumbler.currentIndex = index // Tıklanan rakamı ortaya getirir
+                            }
+                        }
                     }
                 }
+
 
                 // 2. AY ÇARKI
                 Tumbler {
@@ -334,20 +350,37 @@ Window {
                     WheelHandler {
                         onWheel: (wheel) => {
                                      monthTumbler.forceActiveFocus()
-                                     if(wheel.angleDelta.y > 0) currentIndex = Math.max(0, currentIndex - 1)
-                                     else currentIndex = Math.min(count - 1, currentIndex + 1)
+                                     if(wheel.angleDelta.y > 0) monthTumbler.currentIndex = Math.max(0, monthTumbler.currentIndex - 1)
+                                     else monthTumbler.currentIndex = Math.min(monthTumbler.count - 1, monthTumbler.currentIndex + 1)
                                  }
                     }
 
-                    delegate: Text {
-                        text: modelData
-                        color: monthTumbler.currentIndex === index ? (calendarPopup.activeTumbler === monthTumbler ? "#ec4899" : "#aaaaff") : "#473c8b"
-                        font.pixelSize: monthTumbler.currentIndex === index ? 22 : 16
-                        font.bold: monthTumbler.currentIndex === index
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    delegate: Item {
+                        width: monthTumbler.width
+                        height: 40
+
+                        Text{
+                            anchors.fill: parent
+                            text: modelData
+                            color:  monthTumbler.currentIndex === index ? (calendarPopup.activeTumbler ===  monthTumbler ? "#008080" : "#be185d") : "#473c8b"
+                            font.pixelSize:  monthTumbler.currentIndex === index ? 22 : 16
+                            font.bold:  monthTumbler.currentIndex === index
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                monthTumbler.forceActiveFocus()
+                                calendarPopup.activeTumbler =  monthTumbler
+                                monthTumbler.currentIndex = index // Tıklanan rakamı ortaya getirir
+                            }
+                        }
                     }
                 }
+
+
 
                 // 3. GÜN ÇARKI
                 Tumbler {
@@ -359,6 +392,7 @@ Window {
                     onActiveFocusChanged: { if (activeFocus) calendarPopup.activeTumbler = dayTumbler }
                     onMovingChanged: { if (moving) forceActiveFocus() }
 
+
                     Keys.onLeftPressed: monthTumbler.forceActiveFocus()
                     Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
                     Keys.onDownPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
@@ -366,18 +400,33 @@ Window {
                     WheelHandler {
                         onWheel: (wheel) => {
                                      dayTumbler.forceActiveFocus()
-                                     if (wheel.angleDelta.y > 0) currentIndex = Math.max(0, currentIndex - 1)
-                                     else currentIndex = Math.min(count - 1, currentIndex + 1)
+                                     if (wheel.angleDelta.y > 0)  dayTumbler.currentIndex = Math.max(0,  dayTumbler.currentIndex - 1)
+                                     else  dayTumbler.currentIndex = Math.min( dayTumbler.count - 1,  dayTumbler.currentIndex + 1)
                                  }
                     }
 
-                    delegate: Text {
-                        text: (modelData + 1).toString().padStart(2, '0')
-                        color: dayTumbler.currentIndex === index ? (calendarPopup.activeTumbler === dayTumbler ? "#ec4899" : "#aaaaff") : "#473c8b"
-                        font.pixelSize: dayTumbler.currentIndex === index ? 22 : 16
-                        font.bold: dayTumbler.currentIndex === index
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    delegate: Item {
+                        width: dayTumbler.width
+                        height: 40
+
+                        Text{
+                            anchors.fill: parent
+                            text: modelData
+                            color: dayTumbler.currentIndex === index ? (calendarPopup.activeTumbler === dayTumbler ? "#008080" : "#be185d") : "#473c8b"
+                            font.pixelSize: dayTumbler.currentIndex === index ? 22 : 16
+                            font.bold: dayTumbler.currentIndex === index
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                dayTumbler.forceActiveFocus()
+                                calendarPopup.activeTumbler = dayTumbler
+                                dayTumbler.currentIndex = index // Tıklanan rakamı ortaya getirir
+                            }
+                        }
                     }
                 }
             }

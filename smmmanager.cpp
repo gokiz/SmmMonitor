@@ -174,10 +174,31 @@ void SmmManager::initDatabase(){
 }
 
 void SmmManager::refreshHistoryModel(){
-    if(!m_historyModel){
-        return;
+    if (!m_historyModel) return;
+
+    QString queryString;
+
+    //filtre aktifse yenilemeyi filtreye göre yap
+    if(m_isFilterActive){
+        QString startStr = m_filterStartDate + " T00:00:00";
+        QString endStr = m_filterEndDate + "T23:59:59";
+
+        queryString = QString("SELECT timestamp, spo2, pulse_rate AS pulseRate "
+                              "FROM measurements "
+                              "WHERE timestamp >= '%1' AND timestamp <= '%2' "
+                              "ORDER BY id DESC").arg(startStr, endStr);
     }
-    m_historyModel->setQuery("SELECT timestamp, spo2, pulse_rate AS pulseRate FROM measurements ORDER BY id DESC");
+    //filtre aktfi değilse tüm lüsteyi getir
+    else {
+        queryString = "SELECT timestamp, spo2, pulse_rate AS pulseRate "
+                      "FROM measurements "
+                      "ORDER BY id DESC";
+    }
+
+    m_historyModel->setQuery(queryString);
+    if(m_historyModel->lastError().isValid()){
+        qDebug() << "Model Refresh Error: " << m_historyModel->lastError().text();
+    }
 }
 void SmmManager::insertMeasurement(int spo2, int pulseRate) {
     QSqlQuery query;
@@ -247,29 +268,21 @@ void SmmManager::tryReconnect(){
     }
 }
 void SmmManager::filterHistoryByDate(const QString &startDate, const QString &endDate) {
-    if(!m_historyModel) return;
 
-    // Arayüzdeki metin kutularından (örneğin "2026-07-20") gelen tarihe,
-    // günün başlangıç ve bitiş saatlerini (T00:00:00) manuel olarak ekliyoruz.
-    QString startStr = startDate + "T00:00:00";
-    QString endStr = endDate + "T23:59:59";
+    //filtreyi hafızaya al ve aktif et
+    m_isFilterActive = true;
+    m_filterStartDate = startDate;
+    m_filterEndDate = endDate;
 
-    // bindValue() KULLANMIYORUZ. Bunun yerine %1 ve %2 ile tarihleri sorguya gömüyoruz.
-    // DİKKAT: %1 ve %2'nin etrafındaki tek tırnaklar ('%1') SQLite için çok önemlidir.
-    QString queryString = QString("SELECT timestamp, spo2, pulse_rate AS pulseRate "
-                                  "FROM measurements "
-                                  "WHERE timestamp >= '%1' AND timestamp <= '%2' "
-                                  "ORDER BY id DESC").arg(startStr, endStr);
-
-    // Sorguyu doğrudan modele veriyoruz
-    m_historyModel->setQuery(queryString);
-
-    // Hata varsa konsola yazdır
-    if (m_historyModel->lastError().isValid()) {
-        qDebug() << "Filtering Error:" << m_historyModel->lastError().text();
-    }
+    refreshHistoryModel();
 }
 void SmmManager::clearFilter(){
+
+    //filtreyi kapat ve hafızayı temizle
+    m_isFilterActive = false;
+    m_filterStartDate.clear();
+    m_filterEndDate.clear();
+
     refreshHistoryModel();
 }
 

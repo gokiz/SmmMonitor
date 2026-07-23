@@ -89,6 +89,10 @@ private:
     void initDatabase();
     void insertMeasurement(int spo2, int pulseRate);
     void refreshHistoryModel();
+
+    bool m_isFilterActive = false;
+    QString m_filterStartDate;
+    QString m_filterEndDate;
 };
 
 #endif // SMMMANAGER_H
