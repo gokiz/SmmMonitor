@@ -39,9 +39,9 @@ Window {
 
             TextField {
                 id: startDateInput
-                width: 120
+                width: 150
                 height: 40
-                placeholderText: "Choose Date"
+                placeholderText: "Choose Date and Time"
                 font.pixelSize: 14
                 readOnly: true
 
@@ -66,9 +66,9 @@ Window {
             }
             TextField{
                 id: endDateInput
-                width: 120
+                width: 150
                 height: 40
-                placeholderText: "Choose Date"
+                placeholderText: "Choose Date and Time"
                 font.pixelSize: 14
                 readOnly: true //klavye açılmasını engeller
 
@@ -245,53 +245,49 @@ Window {
     }
     Popup {
         id: calendarPopup
-        width: 300
+        width: 440
         height: 320
         modal: true
         anchors.centerIn: parent
-        background: Rectangle { color: "#1e293b"; radius: 15; border.color: "#b0e2ff"; border.width: 2 }
+        background: Rectangle {color: "#1e293b"; radius: 15; border.color: "#b0e2ff"; border.width: 2}
 
         property var targetField: null
         property var years: ["2025", "2026", "2027", "2028", "2029", "2030"]
         property var months: ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-
-        // RENK DEĞİŞİMİNİ GARANTİLEMEK İÇİN AKTİF ÇARKI HAFIZADA TUTUYORUZ
         property var activeTumbler: yearTumbler
 
         onOpened: {
             activeTumbler = yearTumbler
             yearTumbler.forceActiveFocus()
         }
-
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 15
             spacing: 20
 
-            Text {
-                text: "Choose Date"
+            Text{
+                text: "Choose Date & Time"
                 color: "#ffffff"
                 font.bold: true
                 font.pixelSize: 18
                 Layout.alignment: Qt.AlignHCenter
             }
-
-            // --- TARİH ÇARKLARI (Yıl - Ay - Gün) ---
-            RowLayout {
+            //Tarih ve saat çarkları
+            RowLayout{
                 Layout.alignment: Qt.AlignHCenter
-                spacing: 15
+                spacing: 8
 
-                // 1. YIL ÇARKI
-                Tumbler {
+                //Yıl çarkı
+                Tumbler{
                     id: yearTumbler
-                    model: calendarPopup.years
+                    model:calendarPopup.years
                     currentIndex: 1
                     visibleItemCount: 3
                     Layout.preferredHeight: 120
+                    Layout.preferredWidth: 60
 
-                    // Odaklandığında kendini aktif çark olarak belirler
-                    onActiveFocusChanged: { if (activeFocus) calendarPopup.activeTumbler = yearTumbler }
-                    onMovingChanged: { if (moving) forceActiveFocus() }
+                    onActiveFocusChanged: {if (activeFocus) calendarPopup.activeTumbler = yearTumbler }
+                    onMovingChanged: {if (moving) {forceActiveFocus(); calendarPopup.activeTumbler = yearTumbler }}
 
                     Keys.onRightPressed: monthTumbler.forceActiveFocus()
                     Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
@@ -300,26 +296,24 @@ Window {
                     WheelHandler {
                         onWheel: (wheel) => {
                                      yearTumbler.forceActiveFocus()
+                                     calendarPopup.activeTumbler = yearTumbler
                                      if(wheel.angleDelta.y > 0) yearTumbler.currentIndex = Math.max(0, yearTumbler.currentIndex - 1)
                                      else yearTumbler.currentIndex = Math.min(yearTumbler.count - 1, yearTumbler.currentIndex + 1)
+
                                  }
                     }
-
-
                     delegate: Item {
                         width: yearTumbler.width
                         height: 40
-
-                        Text{
+                        Text {
                             anchors.fill: parent
                             text: modelData
-                            color: yearTumbler.currentIndex === index ? (calendarPopup.activeTumbler === yearTumbler ? "#008080" : "#be185d") : "#473c8b"
+                            color: yearTumbler.currentIndex === index ? (calendarPopup.activeTumbler === yearTumbler ? "#4169e1" : "#be185d") : "#473c8b"
                             font.pixelSize: yearTumbler.currentIndex === index ? 22 : 16
                             font.bold: yearTumbler.currentIndex === index
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
-
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
@@ -330,123 +324,203 @@ Window {
                         }
                     }
                 }
-
-
-                // 2. AY ÇARKI
-                Tumbler {
+                //Ay çarkı
+                Tumbler{
                     id: monthTumbler
                     model: calendarPopup.months
                     visibleItemCount: 3
                     Layout.preferredHeight: 120
+                    Layout.preferredWidth: 40
 
-                    onActiveFocusChanged: { if (activeFocus) calendarPopup.activeTumbler = monthTumbler }
-                    onMovingChanged: { if (moving) forceActiveFocus() }
+                    onActiveFocusChanged: {if (activeFocus) calendarPopup.activeTumbler = monthTumbler }
+                    onMovingChanged:  {if(moving) {forceActiveFocus(); calendarPopup.activeTumbler = monthTumbler} }
 
                     Keys.onLeftPressed: yearTumbler.forceActiveFocus()
                     Keys.onRightPressed: dayTumbler.forceActiveFocus()
                     Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
                     Keys.onDownPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
 
-                    WheelHandler {
+                    WheelHandler{
                         onWheel: (wheel) => {
                                      monthTumbler.forceActiveFocus()
-                                     if(wheel.angleDelta.y > 0) monthTumbler.currentIndex = Math.max(0, monthTumbler.currentIndex - 1)
-                                     else monthTumbler.currentIndex = Math.min(monthTumbler.count - 1, monthTumbler.currentIndex + 1)
+                                     calendarPopup.activeTumbler = monthTumbler
+                                     if(wheel.angleDelta.y > 0) monthTumbler.currentIndex = Math.max(0, monthTumbler.currentIndex  - 1)
+                                     else monthTumbler.currentIndex = Math.min(monthTumbler.count - 1, monthTumbler.currentIndex + 1 )
                                  }
                     }
-
-                    delegate: Item {
+                    delegate: Item{
                         width: monthTumbler.width
                         height: 40
-
                         Text{
                             anchors.fill: parent
                             text: modelData
-                            color:  monthTumbler.currentIndex === index ? (calendarPopup.activeTumbler ===  monthTumbler ? "#008080" : "#be185d") : "#473c8b"
-                            font.pixelSize:  monthTumbler.currentIndex === index ? 22 : 16
-                            font.bold:  monthTumbler.currentIndex === index
+                            color: monthTumbler.currentIndex === index ? (calendarPopup.activeFocus === monthTumbler ? "#4169e1" : "#be185d") : "#473c8b"
+                            font.pixelSize: monthTumbler.currentIndex === index ? 22 : 16
+                            font.bold: monthTumbler.currentIndex === index
                             horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
+                            verticalAlignment:  Text.AlignVCenter
                         }
-
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
                                 monthTumbler.forceActiveFocus()
-                                calendarPopup.activeTumbler =  monthTumbler
-                                monthTumbler.currentIndex = index // Tıklanan rakamı ortaya getirir
+                                calendarPopup.activeTumbler = monthTumbler
+                                yearTumbler.currentIndex = index
                             }
                         }
                     }
                 }
-
-
-
-                // 3. GÜN ÇARKI
-                Tumbler {
+                //gün çarkı
+                Tumbler{
                     id: dayTumbler
                     model: 31
                     visibleItemCount: 3
                     Layout.preferredHeight: 120
+                    Layout.preferredWidth: 40
 
                     onActiveFocusChanged: { if (activeFocus) calendarPopup.activeTumbler = dayTumbler }
-                    onMovingChanged: { if (moving) forceActiveFocus() }
-
+                    onMovingChanged: { if (moving) { forceActiveFocus(); calendarPopup.activeTumbler = dayTumbler } }
 
                     Keys.onLeftPressed: monthTumbler.forceActiveFocus()
+                    Keys.onRightPressed: hourTumbler.forceActiveFocus() // Sağa basınca saate geçer
                     Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
                     Keys.onDownPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
 
                     WheelHandler {
                         onWheel: (wheel) => {
                                      dayTumbler.forceActiveFocus()
-                                     if (wheel.angleDelta.y > 0)  dayTumbler.currentIndex = Math.max(0,  dayTumbler.currentIndex - 1)
-                                     else  dayTumbler.currentIndex = Math.min( dayTumbler.count - 1,  dayTumbler.currentIndex + 1)
+                                     calendarPopup.activeTumbler = dayTumbler
+                                     if (wheel.angleDelta.y > 0) dayTumbler.currentIndex = Math.max(0, dayTumbler.currentIndex - 1)
+                                     else dayTumbler.currentIndex = Math.min(dayTumbler.count - 1, dayTumbler.currentIndex + 1)
                                  }
                     }
 
                     delegate: Item {
                         width: dayTumbler.width
                         height: 40
-
-                        Text{
+                        Text {
                             anchors.fill: parent
-                            text: modelData
-                            color: dayTumbler.currentIndex === index ? (calendarPopup.activeTumbler === dayTumbler ? "#008080" : "#be185d") : "#473c8b"
+                            text: (modelData + 1).toString().padStart(2, '0')
+                            color: dayTumbler.currentIndex === index ? (calendarPopup.activeTumbler === dayTumbler ? "#4169e1" : "#be185d") : "#473c8b"
                             font.pixelSize: dayTumbler.currentIndex === index ? 22 : 16
                             font.bold: dayTumbler.currentIndex === index
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
-
                         MouseArea {
-                            anchors.fill: parent
+                            anchors.fill: parent;
                             onClicked: {
-                                dayTumbler.forceActiveFocus()
-                                calendarPopup.activeTumbler = dayTumbler
-                                dayTumbler.currentIndex = index // Tıklanan rakamı ortaya getirir
-                            }
+                                dayTumbler.forceActiveFocus();
+                                calendarPopup.activeTumbler = dayTumbler;
+                                dayTumbler.currentIndex = index }
+                        }
+                    }
+                }
+                Item{ Layout.preferredWidth: 20; Layout.preferredHeight: 120 } //görsel ayırcı-tarih ve saat arası boşluk
+
+                //Saat Çarkı
+                Tumbler{
+                    id:hourTumbler
+                    model: 24
+                    visibleItemCount: 3
+                    Layout.preferredHeight: 120
+                    Layout.preferredWidth: 40
+
+                    onActiveFocusChanged: { if (activeFocus) calendarPopup.activeTumbler = hourTumbler }
+                    onMovingChanged: { if (moving) { forceActiveFocus(); calendarPopup.activeTumbler = hourTumbler } }
+                    Keys.onLeftPressed: dayTumbler.forceActiveFocus()
+                    Keys.onRightPressed: minuteTumbler.forceActiveFocus()
+                    Keys.onUpPressed: currentIndex.Math.max(0, currentIndex - 1)
+                    Keys.onDownPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
+
+                    WheelHandler {
+                        onWheel: (wheel) => {
+                                     hourTumbler.forceActiveFocus()
+                                     calendarPopup.activeTumbler = hourTumbler
+                                     if (wheel.angleDelta.y > 0) hourTumbler.currentIndex = Math.max(0, hourTumbler.currentIndex - 1)
+                                     else hourTumbler.currentIndex = Math.min(hourTumbler.count - 1, hourTumbler.currentIndex + 1)
+                                 }
+                    }
+                    delegate: Item {
+                        width: hourTumbler.width
+                        height: 40
+                        Text {
+                            anchors.fill: parent
+                            text: modelData.toString().padStart(2, '0')
+                            color: hourTumbler.currentIndex === index ? (calendarPopup.activeTumbler === hourTumbler ? "#4169e1" : "#be185d") : "#473c8b"
+                            font.pixelSize: hourTumbler.currentIndex === index ? 22 : 16
+                            font.bold: hourTumbler.currentIndex === index
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        MouseArea { anchors.fill: parent;
+                            onClicked: {
+                                hourTumbler.forceActiveFocus();
+                                calendarPopup.activeTumbler = hourTumbler;
+                                hourTumbler.currentIndex = index }
+                        }
+                    }
+                }
+                //dakika çarkı
+                Tumbler {
+                    id: minuteTumbler
+                    model: 60
+                    visibleItemCount: 3
+                    Layout.preferredHeight: 120
+                    Layout.preferredWidth: 40
+
+                    onActiveFocusChanged: { if (activeFocus) calendarPopup.activeTumbler = minuteTumbler }
+                    onMovingChanged: { if (moving) { forceActiveFocus(); calendarPopup.activeTumbler = minuteTumbler } }
+
+                    Keys.onLeftPressed: hourTumbler.forceActiveFocus()
+                    Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
+                    Keys.onDownPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
+
+                    WheelHandler {
+                        onWheel: (wheel) => {
+                                     minuteTumbler.forceActiveFocus()
+                                     calendarPopup.activeTumbler = minuteTumbler
+                                     if (wheel.angleDelta.y > 0) minuteTumbler.currentIndex = Math.max(0, minuteTumbler.currentIndex - 1)
+                                     else minuteTumbler.currentIndex = Math.min(minuteTumbler.count - 1, minuteTumbler.currentIndex + 1)
+                                 }
+                    }
+
+                    delegate: Item {
+                        width: minuteTumbler.width
+                        height: 40
+                        Text {
+                            anchors.fill: parent
+                            text: modelData.toString().padStart(2, '0')
+                            color: minuteTumbler.currentIndex === index ? (calendarPopup.activeTumbler === minuteTumbler ? "#4169e1" : "#be185d") : "#473c8b"
+                            font.pixelSize: minuteTumbler.currentIndex === index ? 22 : 16
+                            font.bold: minuteTumbler.currentIndex === index
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        MouseArea { anchors.fill: parent;
+                            onClicked: {
+                                minuteTumbler.forceActiveFocus();
+                                calendarPopup.activeTumbler = minuteTumbler;
+                                minuteTumbler.currentIndex = index }
                         }
                     }
                 }
             }
-
-            // --- ONAYLA BUTONU ---
-            Rectangle {
+            //onaylama butonu
+            Rectangle{
                 Layout.fillWidth: true
                 Layout.preferredHeight: 45
                 color: "#ec4899"
                 radius: 10
 
-                Text {
+                Text{
                     text: "Apply"
                     color: "#ffffff"
                     font.bold: true
                     font.pixelSize: 16
                     anchors.centerIn: parent
                 }
-
-                MouseArea {
+                MouseArea{
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
                     onClicked: {
@@ -454,8 +528,11 @@ Window {
                             let y = calendarPopup.years[yearTumbler.currentIndex]
                             let m = calendarPopup.months[monthTumbler.currentIndex]
                             let d = (dayTumbler.currentIndex + 1).toString().padStart(2, '0')
+                            let h = hourTumbler.currentIndex.toString().padStart(2, '0')
+                            let min = minuteTumbler.currentIndex.toString().padStart(2, '0')
 
-                            calendarPopup.targetField.text = y + "-" + m + "-" + d
+                            calendarPopup.targetField.text  = y + "-" + m + "-" + d + " " + h + ":" + min
+
                         }
                         calendarPopup.close()
                     }

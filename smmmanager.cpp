@@ -181,7 +181,12 @@ void SmmManager::refreshHistoryModel(){
     //filtre aktifse yenilemeyi filtreye göre yap
     if(m_isFilterActive){
         QString startStr = m_filterStartDate + " T00:00:00";
+        startStr.replace(" ", "T");
+        startStr += ":00";
+
         QString endStr = m_filterEndDate + "T23:59:59";
+        endStr.replace(" ","T");
+        endStr += ":59";
 
         queryString = QString("SELECT timestamp, spo2, pulse_rate AS pulseRate "
                               "FROM measurements "
@@ -233,9 +238,9 @@ QSqlQueryModel* SmmManager::getHistoryModel() {
                     return QVariant();
                 int column = -1;
                 switch (role) {
-                    case Qt::UserRole + 1: column = 0; break;
-                    case Qt::UserRole + 2: column = 1; break;
-                    case Qt::UserRole + 3: column = 2; break;
+                case Qt::UserRole + 1: column = 0; break;
+                case Qt::UserRole + 2: column = 1; break;
+                case Qt::UserRole + 3: column = 2; break;
                 }
                 QModelIndex sourceIndex = this->index(index.row(),column);
                 return QSqlQueryModel::data(sourceIndex, Qt::DisplayRole);
