@@ -111,7 +111,7 @@ Window {
                 color: "#fc3f3f" //kırmızı
                 radius: 10
                 Text{
-                    text: "Clear"
+                    text: "Clear the Filter"
                     color:  "#ffffff"
                     font.bold: true
                     anchors.centerIn: parent
@@ -212,33 +212,61 @@ Window {
         width: parent.width
         height: 70
         anchors.bottom: parent.bottom
-        // silme tuşu
-        Rectangle {
-            id: deleteAllButton
+        Row {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: 20
+            spacing: 15
 
+            //aralık silme tuşu
+            Rectangle{
+                width: 130
+                height: 40
+                color: "#eab308"
+                radius: 10
+                border.color: "#ca8a04"
+                border.width: 1
 
-            width: 100
-            height: 40
-            color: "#991b1b"
-            radius: 10
-            border.color: "#ef4444"
-            border.width: 1
-
-
-            Text{
-                text: "Delete All"
-                color: "#ffffff"
-                font.bold: true
-                anchors.centerIn: parent
+                Text{
+                    text: "Delete Selected"
+                    color: "#ffffff"
+                    font.bold: true
+                    anchors.centerIn: parent
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if(startDateInput.text !== "-" && endDateInput.text !== "-"){
+                            smmManager.deleteHistoryByDateRange(startDateInput.text, endDateInput.text);
+                        } else {
+                            console.log("Please select a start and end date first.");
+                        }
+                    }
+                }
             }
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    smmManager.clearHistory();
+            //Tümünü sil tuşu
+            Rectangle{
+                id: deleteAllButton
+                width: 100
+                height: 40
+                color: "#991b1b"
+                radius: 10
+                border.color: "#ef4444"
+                border.width: 1
+
+                Text{
+                    text: "Delete All"
+                    color: "#ffffff"
+                    font.bold: true
+                    anchors.centerIn: parent
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        smmManager.clearHistory();
+                    }
                 }
             }
         }

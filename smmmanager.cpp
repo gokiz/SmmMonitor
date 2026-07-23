@@ -304,6 +304,32 @@ void SmmManager::clearHistory(){
         refreshHistoryModel();
     }
 }
+void SmmManager::deleteHistoryByDateRange(const QString &startDate, const QString &endDate){
+    if(startDate.isEmpty() || endDate.isEmpty() || startDate == "--" || endDate == "--"){
+        qDebug() << "No valid date range was selected for deletion.";
+        return;
+    }
+    QString startStr = startDate;
+    startStr.replace(" ", "T");
+    startStr += ":00";
+
+    QString endStr = endDate;
+    endStr.replace(" ", "T");
+    endStr += ":59";
+
+    QSqlQuery query;
+    query.prepare("DELETE FROM measurements WHERE timestamp >= :start AND timestamp <= :end");
+    query.bindValue(":start", startStr);
+    query.bindValue(":end", endStr);
+
+    if(!query.exec()){
+        qDebug() << "Error occured while deleting the date range:" << query.lastError().text();
+    }else {
+        qDebug() << "Data between" << startStr << " and " << endStr << "has been successfully deleted.";
+    }
+    refreshHistoryModel();
+
+}
 
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15

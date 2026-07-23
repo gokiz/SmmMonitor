@@ -137,6 +137,14 @@ Window {
                 }
             }
         }
+        Text{
+           text: "Turn on the Sensor"
+           color: "#ef4444"
+           font.pixelSize: 24
+           font.bold: true
+           anchors.horizontalCenter: parent.horizontalCenter
+           visible: !smmManager.isPortConnected
+        }
 
         Row {
             anchors.horizontalCenter: parent.horizontalCenter

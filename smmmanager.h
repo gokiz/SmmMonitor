@@ -40,9 +40,10 @@ public:
     // olmayan bir komut değil.
     Q_INVOKABLE void initializeBiolightModule();    // başlatma komutu fonksiyonu
     Q_INVOKABLE QSqlQueryModel *getHistoryModel();
-    Q_INVOKABLE void filterHistoryByDate(const QString &startDate, const QString &endeDate);
+    Q_INVOKABLE void filterHistoryByDate(const QString &startDate, const QString &endDate);
     Q_INVOKABLE void clearFilter();
     Q_INVOKABLE void clearHistory();
+    Q_INVOKABLE void deleteHistoryByDateRange(const QString &startDate, const QString &endDate);
 
     void injectTestData(const QByteArray &data) {
         m_buffer.append(data);
