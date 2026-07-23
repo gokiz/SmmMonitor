@@ -6,7 +6,8 @@ QT += core gui quick serialport sql
 CONFIG += c++11
 SOURCES += \
         main.cpp \
-        smmmanager.cpp
+        smmmanager.cpp \
+        smmsimulator.cpp
 
 RESOURCES += qml.qrc
 
@@ -22,4 +23,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    smmmanager.h
+    smmmanager.h \
+    smmsimulator.h

@@ -9,6 +9,34 @@ Window {
     title: qsTr("SMM Module SpO2 & Pulse Rate Monitor")
     color: "#0f172a"
 
+    Rectangle{
+        anchors.top: parent.top
+        anchors.right: dbButton.left //show data butonunun solu
+        anchors.margins: 15
+        width: 100
+        height:49
+        color: "transparent"
+        border.color: "#ef4444"
+        border.width: 1
+        radius: 10
+        Text {
+            text: "Test Başlat"
+            color: "#ef4444"
+            anchors.centerIn: parent
+            font.bold: true
+        }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                //simulasyon başlatma komutu
+                smmSimulator.startSimulation();
+                // Port bağlıymış gibi gösterelim ki "Sensörü Açın" uyarıları vs düzgün çalışsın
+                // (smmmanager.cpp'de isPortConnected'ı test için public yaptıysan veya bir test fonksiyonu varsa)
+            }
+        }
+    }
+
     //değerlere göre renk döndüren yardımcı fonksiyon
     function getSpo2Color(val){
         if(val === 0) return "#b0e2ff"; //Gri(okuma yok)

@@ -2,14 +2,20 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include "smmmanager.h"
+#include "smmsimulator.h"
 
 int main(int argc, char *argv[]){
     QGuiApplication app(argc, argv);
     SmmManager smmManager;
+    SmmSimulator smmSimulator;
+
+    QObject::connect(&smmSimulator, &SmmSimulator::mockDataReady,
+                     &smmManager, &SmmManager::injectTestData);
     QQmlApplicationEngine engine;
 
     //C++ sınıfı QML tarafına 'smmManager' olarak kaydediliyor
     engine.rootContext()->setContextProperty("smmManager", &smmManager);
+    engine.rootContext()->setContextProperty("smmSimulator", &smmSimulator);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -19,8 +25,10 @@ int main(int argc, char *argv[]){
     }, Qt::QueuedConnection);
     engine.load(url);
 
-    smmManager.connectToModule("COM5"); //Modülün adı bilgisayar bağlantısına göre değişir
+    /*smmManager.connectToModule("COM5"); //Modülün adı bilgisayar bağlantısına göre değişir
     //modülü aktifleştir
     smmManager.initializeBiolightModule();
+    */
+
     return app.exec();
 }

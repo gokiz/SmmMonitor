@@ -45,10 +45,13 @@ public:
     Q_INVOKABLE void clearHistory();
     Q_INVOKABLE void deleteHistoryByDateRange(const QString &startDate, const QString &endDate);
 
+public slots:
     void injectTestData(const QByteArray &data) {
         m_buffer.append(data);
         parseBuffer();
     }
+
+
 signals:
     void saturationChanged(int newSaturation);
     void pulseRateChanged(int newPulseRate);
