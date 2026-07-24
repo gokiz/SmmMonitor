@@ -29,20 +29,24 @@ void SmmSimulator::simulateNextState(){
     switch (m_simState) {
     case 0:
         qDebug() << "[SIMULASYON]: Normal Değerler";
-        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(96,100));
-        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(65,85));
+        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(95,101));
+        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(60,91));
         break;
     case 1:
         qDebug() << "[SIMULASYON]: Kritik Oksijen ve Nabız";
-        m_currentSpo2 = 85;
-        m_currentPulse = 115;
+        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(70, 90));
+        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(110, 151));
         break;
     case 2: // Zayıf Sinyal
         qDebug() << "[SİMÜLASYON]: Zayıf Sinyal Uyarısı";
+        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(80, 95));
+        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(40, 120));
         data0 |= 0x10;
         break;
     case 3: // Sensör Kapalı
         qDebug() << "[SİMÜLASYON]: Sensör Çıkarıldı";
+        m_currentSpo2 = 0;
+        m_currentPulse = 0;
         data0 |= 0x40;
         break;
     }

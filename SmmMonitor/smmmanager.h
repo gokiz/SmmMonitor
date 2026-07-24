@@ -50,6 +50,9 @@ public slots:
         m_buffer.append(data);
         parseBuffer();
     }
+    void setSimulationMode(bool isSimulating) {
+        m_isSimulationMode = isSimulating;
+    }
 
 
 signals:
@@ -97,6 +100,8 @@ private:
     bool m_isFilterActive = false;
     QString m_filterStartDate;
     QString m_filterEndDate;
+
+    bool m_isSimulationMode = false;
 };
 
 #endif // SMMMANAGER_H

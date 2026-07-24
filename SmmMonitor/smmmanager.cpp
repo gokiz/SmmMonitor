@@ -206,6 +206,12 @@ void SmmManager::refreshHistoryModel(){
     }
 }
 void SmmManager::insertMeasurement(int spo2, int pulseRate) {
+
+    //eğer simülasyon modundaysa SQL kaydı yapmadan fonksiyondan çık
+    if (m_isSimulationMode) {
+        return;
+    }
+
     QSqlQuery query;
 
     query.prepare("INSERT INTO measurements (timestamp, spo2, pulse_rate) VALUES (:timestamp, :spo2, :pulse_rate)");
