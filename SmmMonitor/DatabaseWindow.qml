@@ -382,7 +382,7 @@ Window {
                         Text{
                             anchors.fill: parent
                             text: modelData
-                            color: monthTumbler.currentIndex === index ? (calendarPopup.activeFocus === monthTumbler ? "#4169e1" : "#be185d") : "#473c8b"
+                            color: monthTumbler.currentIndex === index ? (calendarPopup.activeTumbler === monthTumbler ? "#4169e1" : "#be185d") : "#473c8b"
                             font.pixelSize: monthTumbler.currentIndex === index ? 22 : 16
                             font.bold: monthTumbler.currentIndex === index
                             horizontalAlignment: Text.AlignHCenter
@@ -393,7 +393,7 @@ Window {
                             onClicked: {
                                 monthTumbler.forceActiveFocus()
                                 calendarPopup.activeTumbler = monthTumbler
-                                yearTumbler.currentIndex = index
+                                monthTumbler.currentIndex = index
                             }
                         }
                     }

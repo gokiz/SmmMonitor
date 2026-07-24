@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
+import CustomControls 1.0
 
 Window {
     id: root
@@ -11,6 +12,7 @@ Window {
 
 
     Row{
+        visible: false
         anchors.top: parent.top
         anchors.right: dbButton.left //show data butonunun solu
         anchors.margins: 15
@@ -271,6 +273,13 @@ Window {
                     }
                 }
             }
+            WaveformPlotter {
+                id:wavePlotter
+                width: 320
+                height: 150
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
             //2.kutu-pulse
             Rectangle {
                 width: 320
@@ -336,6 +345,13 @@ Window {
         }
 
     }
+    Connections{
+        target: smmManager
+        function onWaveformChanged(newWaveform){
+            wavePlotter.addPoint(newWaveform)
+        }
+    }
+
     DatabaseWindow {
             id: dbWindow
         }

@@ -7,7 +7,8 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         smmmanager.cpp \
-        smmsimulator.cpp
+        smmsimulator.cpp \
+        waveformplotter.cpp
 
 RESOURCES += qml.qrc
 
@@ -24,4 +25,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     smmmanager.h \
-    smmsimulator.h
+    smmsimulator.h \
+    waveformplotter.h

@@ -21,6 +21,7 @@ class SmmManager : public QObject
     Q_PROPERTY(bool beepVoice READ beepVoice NOTIFY beepVoiceChanged)
     Q_PROPERTY(bool pulseSearch READ pulseSearch NOTIFY pulseSearchChanged )
     Q_PROPERTY(bool isPortConnected READ isPortConnected NOTIFY isPortConnectedChanged)
+    Q_PROPERTY(int waveform READ waveform NOTIFY waveformChanged )
 
 
 public:
@@ -33,6 +34,7 @@ public:
     bool beepVoice() const {return m_beepVoice; }
     bool pulseSearch() const {return m_pulseSearch; }
     bool isPortConnected() const {return m_isPortConnected;}
+    bool waveform() const {return m_waveform;}
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
@@ -62,6 +64,7 @@ signals:
     void beepVoiceChanged(bool beepVoice);
     void pulseSearchChanged(bool pulseSearch);
     void isPortConnectedChanged(bool isPortConnected);
+    void waveformChanged(int newWaveform);
 
 
 private slots:
@@ -80,6 +83,7 @@ private:
     bool m_isSignalWeak = false;
     bool m_beepVoice = false;
     bool m_pulseSearch = false;
+    int m_waveform = 0;
 
     void handlePortError(QSerialPort::SerialPortError error);
     void tryReconnect();

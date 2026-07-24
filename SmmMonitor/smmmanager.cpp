@@ -132,15 +132,17 @@ void SmmManager::readData(){
 
 //3 saniye boyunca veri gelmezse çalışacak kurtarma fonksiyonu
 void SmmManager::onWatchdogTimeout() {
-    if(m_saturation != 0 || m_pulseRate != 0 || m_isSignalWeak){
+    if(m_saturation != 0 || m_pulseRate != 0 || m_isSignalWeak || m_waveform != 0){
         m_saturation = 0;
         m_pulseRate = 0;
+        m_waveform = 0;
         m_isSignalWeak = false;
         m_beepVoice = false;
         m_pulseSearch = false;
 
         emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
         emit pulseRateChanged(m_pulseRate);
+        emit waveformChanged(m_waveform);
         emit isSignalWeakChanged(m_isSignalWeak);
         emit beepVoiceChanged(m_beepVoice);
         emit pulseSearchChanged(m_pulseSearch);
@@ -408,7 +410,11 @@ void SmmManager::parseBuffer(){
             const quint8 prLsb = static_cast<quint8>(data[5]);
             int rawPulseRate = (prMsb << 8 | prLsb);
 
-            if(inSensorOff || rawSpo2 == 127 || rawPulseRate == 255){
+            const quint8 rawWaveform = static_cast<quint8>(data[1]);
+
+
+
+            if(inSensorOff || rawSpo2 == 127 || rawPulseRate == 255 || rawWaveform == 127){
                 if(m_saturation != 0) {
                     m_saturation = 0;
                     emit saturationChanged(m_saturation);
@@ -417,13 +423,19 @@ void SmmManager::parseBuffer(){
                     m_pulseRate = 0;
                     emit pulseRateChanged(m_pulseRate);
                 }
+                if(m_waveform != 0){
+                    m_waveform = 0;
+                    emit waveformChanged(m_waveform);
+                }
             } else {
-                if(m_saturation != rawSpo2 || m_pulseRate != rawPulseRate) {
+                if(m_saturation != rawSpo2 || m_pulseRate != rawPulseRate || m_waveform != rawWaveform) {
                     m_saturation = rawSpo2;
                     m_pulseRate = rawPulseRate;
+                    m_waveform = rawWaveform;
 
                     emit saturationChanged(m_saturation);
                     emit pulseRateChanged(m_pulseRate);
+                    emit waveformChanged(m_waveform);
 
                     insertMeasurement(rawSpo2, rawPulseRate);
                 }
