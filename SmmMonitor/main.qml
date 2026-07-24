@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import CustomControls 1.0
+import QtQuick.Layouts 1.15
 
 Window {
     id: root
@@ -175,54 +176,159 @@ Window {
             }
         }
     }
-
-    Column{
-        anchors.centerIn: parent
-        spacing: 40
+    ColumnLayout {
+        anchors.top: sensorStatusRow.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 30
+        spacing: 30
 
         Rectangle{
+            Layout.alignment: Qt.AlignHCenter
             width: 670
             height: 45
             color: "#ef4444"
             radius: 12
-            anchors.horizontalCenter: parent.horizontalCenter
             visible: smmManager.isSignalWeak
-            Row{
+            Row {
                 anchors.centerIn: parent
                 spacing: 10
                 Text{
-                    text:  "CRITICAL: WEAK SIGNAL DETECTED!"
+                    text: "CRITICAL: WEAK SIGNAL DETECTED!"
                     color: "#ffffff"
                     font.pixelSize: 15
                     font.bold: true
                 }
             }
         }
-        Text{
-           text: "Turn on the Sensor"
-           color: "#ef4444"
-           font.pixelSize: 24
-           font.bold: true
-           anchors.horizontalCenter: parent.horizontalCenter
-           visible: !smmManager.isPortConnected
+        Text {
+            Layout.alignment: Qt.AlignHCenter
+            text: "Turn on the Sensor"
+            color: "#ef4444"
+            font.pixelSize: 24
+            font.bold: true
+            visible: !smmManager.isPortConnected
         }
-
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
+        ColumnLayout{
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.leftMargin: 40
+            Layout.rightMargin: 40
             spacing: 30
 
-
-            //1.kutu: spo2
-            Rectangle {
-                width: 320
-                height: 320
+            Rectangle{
+                Layout.fillWidth: true
+                Layout.preferredHeight: 250
                 color: "#473c8b"
                 radius: 20
                 border.width: 3
                 border.color: getSpo2Color(smmManager.saturation)
+                clip: true
 
-                Text{
-                    text: "🫁"
+                RowLayout{
+                    anchors.fill: parent
+                    spacing: 0
+
+                    Item {
+                        Layout.preferredWidth: 240
+                        Layout.fillHeight: true
+
+                        Text{
+                            text: "🫁"
+                            font.pixelSize: 40
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            anchors.margins: 20
+                            visible: smmManager.beepVoice
+                        }
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 20
+                            color:"transparent"
+                            border.width: smmManager.saturation > 0 ? 8 : 0
+                            border.color: getSpo2Color(smmManager.saturation)
+                            opacity: 0.2
+
+                            SequentialAnimation on opacity{
+                                loops: Animation.Infinite
+                                running: smmManager.saturation > 0
+                                NumberAnimation{ to: 0.6; duration: 1000; easing.type: Easing.InOutQuad }
+                                NumberAnimation{ to: 0.1; duration: 1000; easing.type: Easing.InOutQuad }
+                            }
+                        }
+                        Column{
+                            anchors.centerIn: parent
+                            spacing: 20
+
+                            Text {
+                                text:"SpO2 (%)"
+                                color: "#b0e2ff"
+                                font.pixelSize: 24
+                                font.bold: true
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                            Text {
+                                text: smmManager.saturation === 0 ? "--" : smmManager.saturation
+                                color: getSpo2Color(smmManager.saturation)
+                                font.pixelSize: 96
+                                font.bold: true
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                            Text {
+                                text: getStatusText("spo2", smmManager.saturation, smmManager.isPortConnected, smmManager.pulseSearch)
+                                color: getSpo2Color(smmManager.saturation)
+                                font.pixelSize: 14
+                                font.bold: true
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                        }
+                    }
+
+                    Rectangle{
+                        Layout.fillHeight: true
+                        Layout.topMargin: 20
+                        Layout.bottomMargin: 20
+                        width: 2
+                        color: "#334155"
+                        radius: 1
+                    }
+                    // Y Ekseni Sayıları
+                    ColumnLayout {
+                        Layout.fillHeight: true
+                        Layout.topMargin: 20
+                        Layout.bottomMargin: 20
+                        Layout.leftMargin: 10 // Çizgiden sonra hafif boşluk
+                        spacing: 0
+
+                        Text { text: "100"; color: "#64748b"; font.pixelSize: 11; font.bold: true; Layout.alignment: Qt.AlignTop }
+                        Item { Layout.fillHeight: true } // Sayıların arasını eşit açmak için görünmez yay
+                        Text { text: " 50"; color: "#64748b"; font.pixelSize: 11; font.bold: true; Layout.alignment: Qt.AlignVCenter }
+                        Item { Layout.fillHeight: true }
+                        Text { text: "  0"; color: "#64748b"; font.pixelSize: 11; font.bold: true; Layout.alignment: Qt.AlignBottom }
+                    }
+
+                    WaveformPlotter {
+                        id: wavePlotter
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        Layout.topMargin: 15
+                        Layout.bottomMargin: 15
+                        Layout.rightMargin: 15
+                        Layout.leftMargin: 5
+                    }
+                }
+            }
+            Rectangle {
+                Layout.preferredWidth: 320 // Üstteki SpO2 metin kutusu ile aynı hizada kalır
+                Layout.preferredHeight: 250
+                color: "#473c8b"
+                radius: 20
+                border.width: 3
+                border.color: getPulseColor(smmManager.pulseRate)
+
+                Text {
+                    text: "🩷"
                     font.pixelSize: 40
                     anchors.top: parent.top
                     anchors.right: parent.right
@@ -230,75 +336,6 @@ Window {
                     visible: smmManager.beepVoice
                 }
 
-                //nabız animasyon katmanı
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 20
-                    color: "transparent"
-                    border.width: smmManager.saturation > 0 ? 8 : 0
-                    border.color: getSpo2Color(smmManager.saturation)
-                    opacity: 0.2
-
-                    SequentialAnimation on opacity {
-                        loops: Animation.Infinite
-                        running: smmManager.saturation > 0
-                        NumberAnimation { to: 0.6; duration: 1000; easing.type: Easing.InOutQuad }
-                        NumberAnimation { to: 0.1; duration: 1000; easing.type: Easing.InOutQuad }
-                    }
-                }
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 20
-
-                    Text {
-                        text:"SpO2 (%)"
-                        color: "#b0e2ff"
-                        font.pixelSize: 24
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Text {
-                        text: smmManager.saturation === 0 ? "--" : smmManager.saturation
-                        color: getSpo2Color(smmManager.saturation)
-                        font.pixelSize: 96
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Text {
-                        text: getStatusText("spo2", smmManager.saturation, smmManager.isPortConnected, smmManager.pulseSearch)
-                        color: getSpo2Color(smmManager.saturation)
-                        font.pixelSize: 14
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
-            }
-            WaveformPlotter {
-                id:wavePlotter
-                width: 320
-                height: 150
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            //2.kutu-pulse
-            Rectangle {
-                width: 320
-                height: 320
-                color: "#473c8b"
-                radius: 20
-                border.width: 3
-                border.color: getPulseColor(smmManager.pulseRate)
-
-                Text{
-                    text: "🩷"
-                    font.pixelSize: 40
-                    anchors.top:parent.top
-                    anchors.right: parent.right
-                    anchors.margins: 20
-                    visible: smmManager.beepVoice
-                }
-
-                //nabız animasyonu
                 Rectangle {
                     anchors.fill: parent
                     radius: 20
@@ -318,22 +355,21 @@ Window {
                     anchors.centerIn: parent
                     spacing: 20
 
-                    Text{
+                    Text {
                         text: "Pulse Rate (bpm)"
                         color: "#b0e2ff"
                         font.pixelSize: 24
                         font.bold: true
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
-                    Text{
+                    Text {
                         text: smmManager.pulseRate === 0 ? "--" : smmManager.pulseRate
                         color: getPulseColor(smmManager.pulseRate)
                         font.pixelSize: 96
                         font.bold: true
                         anchors.horizontalCenter: parent.horizontalCenter
-
                     }
-                    Text{
+                    Text {
                         text: getStatusText("pulse", smmManager.pulseRate, smmManager.isPortConnected, smmManager.pulseSearch)
                         color: getPulseColor(smmManager.pulseRate)
                         font.pixelSize: 14
@@ -342,17 +378,22 @@ Window {
                     }
                 }
             }
+            Item {
+                Layout.fillHeight: true
+            }
         }
-
     }
-    Connections{
+    DatabaseWindow {
+        id: dbWindow
+    }
+    Connections {
         target: smmManager
-        function onWaveformChanged(newWaveform){
+
+        function onWaveformChanged(newWaveform) {
             wavePlotter.addPoint(newWaveform)
         }
     }
-
-    DatabaseWindow {
-            id: dbWindow
-        }
 }
+
+
+

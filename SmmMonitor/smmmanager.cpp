@@ -427,18 +427,22 @@ void SmmManager::parseBuffer(){
                     m_waveform = 0;
                     emit waveformChanged(m_waveform);
                 }
+                m_waveform = 0;
+                emit waveformChanged(m_waveform);
             } else {
-                if(m_saturation != rawSpo2 || m_pulseRate != rawPulseRate || m_waveform != rawWaveform) {
+                if(m_saturation != rawSpo2 || m_pulseRate != rawPulseRate ) {
                     m_saturation = rawSpo2;
                     m_pulseRate = rawPulseRate;
-                    m_waveform = rawWaveform;
+
 
                     emit saturationChanged(m_saturation);
                     emit pulseRateChanged(m_pulseRate);
-                    emit waveformChanged(m_waveform);
+
 
                     insertMeasurement(rawSpo2, rawPulseRate);
                 }
+                m_waveform = rawWaveform;
+                emit waveformChanged(m_waveform);
 
             }
         }
