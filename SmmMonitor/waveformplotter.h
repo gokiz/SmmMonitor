@@ -16,7 +16,9 @@ public:
 
 private:
     QList<int>m_points;
+    int m_currentIndex; //çizimin x ekseninde o an nerede olduğunu tutar
     int m_maxPoints; // ekrana aynı anda sığacak nokta sayısı
+    int m_gapSize; // çizinm imlecinin önğndeki silinen (boş) alanın boyutu
 };
 
 #endif // WAVEFORMPLOTTER_H

@@ -11,6 +11,9 @@ Window {
     title: qsTr("SMM Module SpO2 & Pulse Rate Monitor")
     color: "#0f172a"
 
+    property bool isMeasuringSpo2: false
+    property bool isMeasuringPulse: false
+
 
     Row{
         visible: false
@@ -87,11 +90,15 @@ Window {
     }
 
     //değerlere göre bilgilendirme metni döndüren fonksiyon
-    function getStatusText(type, val, isPortConnected, pulseSearch) {
+    function getStatusText(type, val, isPortConnected, pulseSearch, beepVoice) {
         if(type === "pulse" && isPortConnected && pulseSearch) {
             return "Searching for Pulse...";
         }
         if(val === undefined || val === null || val === 0){
+            if(beepVoice){
+                return "Measuring...";
+            }
+
             return "Place Your Finger on the Sensor";
         }
         if(type === "spo2"){
@@ -181,7 +188,7 @@ Window {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.topMargin: 30
+        anchors.topMargin: 55
         spacing: 30
 
         Rectangle{
@@ -276,7 +283,7 @@ Window {
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             Text {
-                                text: getStatusText("spo2", smmManager.saturation, smmManager.isPortConnected, smmManager.pulseSearch)
+                                text: getStatusText("spo2", smmManager.saturation, smmManager.isPortConnected, smmManager.pulseSearch, isMeasuringSpo2)
                                 color: getSpo2Color(smmManager.saturation)
                                 font.pixelSize: 14
                                 font.bold: true
@@ -370,7 +377,7 @@ Window {
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
                     Text {
-                        text: getStatusText("pulse", smmManager.pulseRate, smmManager.isPortConnected, smmManager.pulseSearch)
+                        text: getStatusText("pulse", smmManager.pulseRate, smmManager.isPortConnected, smmManager.pulseSearch, isMeasuringPulse)
                         color: getPulseColor(smmManager.pulseRate)
                         font.pixelSize: 14
                         font.bold: true
@@ -391,6 +398,37 @@ Window {
 
         function onWaveformChanged(newWaveform) {
             wavePlotter.addPoint(newWaveform)
+        }
+        function onBeepVoiceChanged(newBeepVoice){
+            if(newBeepVoice){
+                if(smmManager.saturation === 0) isMeasuringSpo2 = true;
+                if(smmManager.pulseRate === 0) isMeasuringPulse = true;
+
+                measuringTimeoutTimer.restart();
+            }
+        }
+        function onSaturationChanged(newSaturation) {
+            if(newSaturation > 0) isMeasuringSpo2 = false;
+        }
+        function onPulseRateChanged(newPulseRate) {
+            if(newPulseRate > 0) isMeasuringPulse = false;
+        }
+        //sensör bağlantısı kesilirse ölçüm durumlarını sıfırla
+        function onIsPortConnectedChanged(connected) {
+            if(!connected){
+                isMeasuringSpo2 = false;
+                isMeasuringPulse = false;
+            }
+        }
+    }
+    Timer{
+        id:measuringTimeoutTimer
+        interval: 1500
+        repeat: false
+        onTriggered: {
+            isMeasuringSpo2 = false;
+            isMeasuringPulse = false;
+            console.log("Sensor idle: Measurement status reset by timeout.");
         }
     }
 }
