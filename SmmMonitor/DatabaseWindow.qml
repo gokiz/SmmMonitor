@@ -273,7 +273,7 @@ Window {
     }
     Popup {
         id: calendarPopup
-        width: 440
+        width: 500
         height: 320
         modal: true
         anchors.centerIn: parent
@@ -501,6 +501,7 @@ Window {
                     onMovingChanged: { if (moving) { forceActiveFocus(); calendarPopup.activeTumbler = minuteTumbler } }
 
                     Keys.onLeftPressed: hourTumbler.forceActiveFocus()
+                    Keys.onRightPressed: secondTumbler.forceActiveFocus()
                     Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
                     Keys.onDownPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
 
@@ -533,6 +534,49 @@ Window {
                         }
                     }
                 }
+                //saniye çarkı
+                Tumbler{
+                    id: secondTumbler
+                    model: 60
+                    visibleItemCount: 3
+                    Layout.preferredHeight: 120
+                    Layout.preferredWidth: 40
+                    onActiveFocusChanged: {if (activeFocus) calendarPopup.activeTumbler = secondTumbler}
+                    onMovingChanged: {if (moving) {forceActiveFocus(); calendarPopup.activeTumbler = secondTumbler }}
+
+                    Keys.onLeftPressed: minuteTumbler.forceActiveFocus()
+                    Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
+                    Keys.onDownPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
+
+                    WheelHandler {
+                        onWheel: (wheel) => {
+                                     secondTumbler.forceActiveFocus()
+                                     calendarPopup.activeTumbler = secondTumbler
+                                     if (wheel.angleDelta.y > 0) secondTumbler.currentIndex = Math.max(0, secondTumbler.currentIndex - 1)
+                                     else secondTumbler.currentIndex = Math.min(secondTumbler.count - 1, secondTumbler.currentIndex + 1)
+                                 }
+                    }
+                    delegate: Item {
+                        width: secondTumbler.width
+                        height: 40
+                        Text {
+                            anchors.fill: parent
+                            text: modelData.toString().padStart(2, '0')
+                            color: secondTumbler.currentIndex === index ? (calendarPopup.activeTumbler === secondTumbler ? "#4169e1" : "#be185d" ) : "#473c8b"
+                            font.pixelSize: secondTumbler.currentIndex === index ? 22 : 16
+                            font.bold: secondTumbler. currentIndex === index
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                        MouseArea {anchors.fill: parent;
+                            onClicked: {
+                                secondTumbler.forceActiveFocus();
+                                calendarPopup.activeTumbler = secondTumbler;
+                                secondTumbler.currentIndex = index;
+                            }
+                        }
+                    }
+                }
             }
             //onaylama butonu
             Rectangle{
@@ -558,8 +602,9 @@ Window {
                             let d = (dayTumbler.currentIndex + 1).toString().padStart(2, '0')
                             let h = hourTumbler.currentIndex.toString().padStart(2, '0')
                             let min = minuteTumbler.currentIndex.toString().padStart(2, '0')
+                            let sec = secondTumbler.currentIndex.toString().padStart(2, '0')
 
-                            calendarPopup.targetField.text  = y + "-" + m + "-" + d + " " + h + ":" + min
+                            calendarPopup.targetField.text  = y + "-" + m + "-" + d + " " + h + ":" + min + ":" + sec
 
                         }
                         calendarPopup.close()

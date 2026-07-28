@@ -341,26 +341,11 @@ Window {
                     anchors.fill: parent
                     spacing: 0
 
-                    //y ekseni sayıları
-                    ColumnLayout {
-                        Layout.fillHeight: true
-                        Layout.topMargin: 20
-                        Layout.bottomMargin: 20
-                        Layout.leftMargin: 15
-                        spacing: 0
-
-                        Text{ text: "100"; color: "#a5d8ff"; font.pixelSize: 12; font.bold: true; Layout.alignment: Qt.AlignTop }
-                        Item {Layout.fillHeight: true}
-                        Text{ text: "50"; color: "#a5d8ff"; font.pixelSize: 12; font.bold: true; Layout.alignment: Qt.AlignVCenter }
-                        Item { Layout.fillHeight: true}
-                        Text{ text: "0"; color: "#a5d8ff"; font.pixelSize: 12; font.bold: true; Layout.alignment: Qt.AlignBottom }
-
-                    }
                     Rectangle {
                         Layout.fillHeight: true
                         Layout.topMargin: 20
                         Layout.bottomMargin: 20
-                        Layout.leftMargin: 10
+                        Layout.leftMargin: 15
                         width: 2
                         color: "#334155"
                         radius: 1
