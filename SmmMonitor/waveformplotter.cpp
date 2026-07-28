@@ -41,7 +41,7 @@ void WaveformPlotter::paint(QPainter *painter){
 
     //grafiğin altından ve üstünden 5er piksel pay bırakarak güvenli bir çizim alanı oluşturulur
     double drawableHeight = height() - 10.0;
-    double scaleY = height() / 100.0; //veriler 0-99 arasında
+    double scaleY = height() / 126.0; //veriler 0-99 arasında
 
     //noktaları birbirine bağlayarak çiz
     for(int i = 0; i < m_points.size() - 1; ++i){

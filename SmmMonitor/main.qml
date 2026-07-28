@@ -222,171 +222,168 @@ Window {
             Layout.fillHeight: true
             Layout.leftMargin: 40
             Layout.rightMargin: 40
+            Layout.bottomMargin: 30
             spacing: 30
+
+            RowLayout{
+                Layout.fillWidth: true
+                Layout.preferredHeight: 280
+                Layout.maximumHeight: 280
+                Layout.minimumHeight: 250
+                Layout.fillHeight: false
+                spacing: 30
+
+                //spo2 kartı
+                Rectangle{
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    color: "#473c8b"
+                    radius: 20
+                    border.width: 3
+                    border.color: getSpo2Color(smmManager.saturation)
+                    clip: true
+
+                    Text{
+                        text: "🫁"
+                        font.pixelSize: 40
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                        anchors.margins: 20
+                        visible: smmManager.beepVoice
+                    }
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 10
+                        Text{
+                            text: "SpO2 (%)"
+                            color: "#b0e2ff"
+                            font.pixelSize: 24
+                            font.bold: true
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                        Text{
+                            text: smmManager.saturation === 0 ? "--" : smmManager.saturation
+                            color: getSpo2Color(smmManager.saturation)
+                            font.pixelSize: 84
+                            font.bold: true
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                    }
+                    Text{
+                        text: getStatusText("spo2", smmManager.saturation, smmManager.isPortConnected, smmManager.pulseSearch, isMeasuringSpo2)
+                        color: getSpo2Color(smmManager.saturation)
+                        font.bold: true
+                        font.pixelSize: 13
+                        anchors.bottom: parent.bottom
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottomMargin: 15
+                    }
+                }
+                //Pulse Kartı
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    color: "#473c8b"
+                    radius: 20
+                    border.width: 3
+                    border.color: getPulseColor(smmManager.pulseRate)
+                    clip: true
+
+                    Text{
+                        text: "🩷"
+                        font.pixelSize: 40
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                        anchors.margins: 20
+                        visible: smmManager.beepVoice
+                    }
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 10
+                        Text{
+                            text: "Pulse Rate (bpm)"
+                            color: "#b0e2ff"
+                            font.pixelSize: 24
+                            font.bold: true
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                        Text{
+                            text: smmManager.pulseRate === 0 ? "--" : smmManager.pulseRate
+                            color: getPulseColor(smmManager.pulseRate)
+                            font.pixelSize: 84
+                            font.bold: true
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                    }
+                    Text{
+                        text: getStatusText("pulse", smmManager.pulseRate, smmManager.isPortConnected, smmManager.pulseSearch, isMeasuringPulse)
+                        color: getPulseColor(smmManager.pulseRate)
+                        font.pixelSize: 13
+                        font.bold: true
+                        anchors.bottom: parent.bottom
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottomMargin: 15
+                    }
+                }
+            }
 
             Rectangle{
                 Layout.fillWidth: true
-                Layout.preferredHeight: 250
+                Layout.fillHeight: true
                 color: "#473c8b"
                 radius: 20
                 border.width: 3
-                border.color: getSpo2Color(smmManager.saturation)
+
+                border.color: smmManager.isPortConnected ? "#19b981" : "#334155"
                 clip: true
 
                 RowLayout{
                     anchors.fill: parent
                     spacing: 0
 
-                    Item {
-                        Layout.preferredWidth: 240
-                        Layout.fillHeight: true
-
-                        Text{
-                            text: "🫁"
-                            font.pixelSize: 40
-                            anchors.top: parent.top
-                            anchors.right: parent.right
-                            anchors.margins: 20
-                            visible: smmManager.beepVoice
-                        }
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 20
-                            color:"transparent"
-                            border.width: smmManager.saturation > 0 ? 8 : 0
-                            border.color: getSpo2Color(smmManager.saturation)
-                            opacity: 0.2
-
-                            SequentialAnimation on opacity{
-                                loops: Animation.Infinite
-                                running: smmManager.saturation > 0
-                                NumberAnimation{ to: 0.6; duration: 1000; easing.type: Easing.InOutQuad }
-                                NumberAnimation{ to: 0.1; duration: 1000; easing.type: Easing.InOutQuad }
-                            }
-                        }
-                        Column{
-                            anchors.centerIn: parent
-                            spacing: 20
-
-                            Text {
-                                text:"SpO2 (%)"
-                                color: "#b0e2ff"
-                                font.pixelSize: 24
-                                font.bold: true
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
-                            Text {
-                                text: smmManager.saturation === 0 ? "--" : smmManager.saturation
-                                color: getSpo2Color(smmManager.saturation)
-                                font.pixelSize: 96
-                                font.bold: true
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
-                            Text {
-                                text: getStatusText("spo2", smmManager.saturation, smmManager.isPortConnected, smmManager.pulseSearch, isMeasuringSpo2)
-                                color: getSpo2Color(smmManager.saturation)
-                                font.pixelSize: 14
-                                font.bold: true
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
-                        }
-                    }
-
-                    Rectangle{
-                        Layout.fillHeight: true
-                        Layout.topMargin: 20
-                        Layout.bottomMargin: 20
-                        width: 2
-                        color: "#334155"
-                        radius: 1
-                    }
-                    // Y Ekseni Sayıları
+                    //y ekseni sayıları
                     ColumnLayout {
                         Layout.fillHeight: true
                         Layout.topMargin: 20
                         Layout.bottomMargin: 20
-                        Layout.leftMargin: 10 // Çizgiden sonra hafif boşluk
+                        Layout.leftMargin: 15
                         spacing: 0
 
-                        Text { text: "100"; color: "#64748b"; font.pixelSize: 11; font.bold: true; Layout.alignment: Qt.AlignTop }
-                        Item { Layout.fillHeight: true } // Sayıların arasını eşit açmak için görünmez yay
-                        Text { text: " 50"; color: "#64748b"; font.pixelSize: 11; font.bold: true; Layout.alignment: Qt.AlignVCenter }
-                        Item { Layout.fillHeight: true }
-                        Text { text: "  0"; color: "#64748b"; font.pixelSize: 11; font.bold: true; Layout.alignment: Qt.AlignBottom }
-                    }
+                        Text{ text: "100"; color: "#a5d8ff"; font.pixelSize: 12; font.bold: true; Layout.alignment: Qt.AlignTop }
+                        Item {Layout.fillHeight: true}
+                        Text{ text: "50"; color: "#a5d8ff"; font.pixelSize: 12; font.bold: true; Layout.alignment: Qt.AlignVCenter }
+                        Item { Layout.fillHeight: true}
+                        Text{ text: "0"; color: "#a5d8ff"; font.pixelSize: 12; font.bold: true; Layout.alignment: Qt.AlignBottom }
 
+                    }
+                    Rectangle {
+                        Layout.fillHeight: true
+                        Layout.topMargin: 20
+                        Layout.bottomMargin: 20
+                        Layout.leftMargin: 10
+                        width: 2
+                        color: "#334155"
+                        radius: 1
+                    }
                     WaveformPlotter {
                         id: wavePlotter
-                        Layout.fillWidth: true
                         Layout.fillHeight: true
+                        Layout.fillWidth: true
                         Layout.topMargin: 15
                         Layout.bottomMargin: 15
                         Layout.rightMargin: 15
                         Layout.leftMargin: 5
                     }
                 }
-            }
-            Rectangle {
-                Layout.preferredWidth: 320 // Üstteki SpO2 metin kutusu ile aynı hizada kalır
-                Layout.preferredHeight: 250
-                color: "#473c8b"
-                radius: 20
-                border.width: 3
-                border.color: getPulseColor(smmManager.pulseRate)
-
-                Text {
-                    text: "🩷"
-                    font.pixelSize: 40
-                    anchors.top: parent.top
+                Text{
+                    text: "Plethysmogram (PPG)"
+                    color: "#64748b"
+                    font.pixelSize: 12
+                    font.bold: true
+                    anchors.bottom: parent.bottom
                     anchors.right: parent.right
-                    anchors.margins: 20
-                    visible: smmManager.beepVoice
+                    anchors.margins: 15
                 }
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 20
-                    color: "transparent"
-                    border.width: smmManager.pulseRate > 0 ? 8 : 0
-                    border.color: getPulseColor(smmManager.pulseRate)
-                    opacity: 0.2
-
-                    SequentialAnimation on opacity {
-                        loops: Animation.Infinite
-                        running: smmManager.pulseRate > 0
-                        NumberAnimation { to: 0.6; duration: 1000; easing.type: Easing.InOutQuad}
-                        NumberAnimation { to: 0.1; duration: 1000; easing.type: Easing.InOutQuad}
-                    }
-                }
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 20
-
-                    Text {
-                        text: "Pulse Rate (bpm)"
-                        color: "#b0e2ff"
-                        font.pixelSize: 24
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Text {
-                        text: smmManager.pulseRate === 0 ? "--" : smmManager.pulseRate
-                        color: getPulseColor(smmManager.pulseRate)
-                        font.pixelSize: 96
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    Text {
-                        text: getStatusText("pulse", smmManager.pulseRate, smmManager.isPortConnected, smmManager.pulseSearch, isMeasuringPulse)
-                        color: getPulseColor(smmManager.pulseRate)
-                        font.pixelSize: 14
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
-            }
-            Item {
-                Layout.fillHeight: true
             }
         }
     }
