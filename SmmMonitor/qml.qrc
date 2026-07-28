@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>DatabaseWindow.qml</file>
+        <file>OptionsButton.qml</file>
     </qresource>
 </RCC>

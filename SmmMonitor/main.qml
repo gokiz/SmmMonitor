@@ -19,7 +19,7 @@ Window {
     Row{
         visible: false
         anchors.top: parent.top
-        anchors.right: dbButton.left //show data butonunun solu
+        anchors.right: optionsMenu.left //options butonunun solu
         anchors.margins: 15
         spacing: 10
         //testi baslat
@@ -156,117 +156,18 @@ Window {
         //hem sinyal zayıf olmayacak hem de port bağlı olacak
         visible: !smmManager.isSignalWeak && smmManager.isPortConnected
     }
-    //veritabanı butonu
-    Rectangle{
-        id: dbButton
+    OptionsButton {
+        id: optionsMenu
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.margins: 15
-        width:130
-        height:49
-        color: "#473c8b"
-        radius: 10
-        border.color:"#b0e2ff"
-        border.width: 1
 
-        Text{
-            text:"Show the Data"
-            color: "#ffffff"
-            font.pixelSize: 14
-            font.bold: true
-            anchors.centerIn: parent
+        //optionsButton.qml içinden gönderilen siyali yakala ve veritabanını aç
+        onOpenDatabase: {
+            dbWindow.show()
         }
-        MouseArea{
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor // fare ile üzerine gelince el gbi görünsün diye
-            onClicked: {
-                dbWindow.show()
-            }
-        }
-        Rectangle{
-            id: settingsButton
-            anchors.top: dbButton.top
-            anchors.bottom: dbButton.bottom
-            anchors.right: dbButton.left
-            anchors.rightMargin: 15
-            anchors.margins: 15
-            width: 100
-            height: 49
-            color: "#473c8b"
-            radius: 10
-            border.color: "#b0e2ff"
-            border.width: 1
-
-            Text{
-                text: "Settings"
-                color:"#ffffff"
-                font.pixelSize: 14
-                font.bold: true
-                anchors.centerIn: parent
-            }
-            MouseArea{
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    settingsPopup.open()
-                }
-            }
-            Popup{
-                id:settingsPopup
-                width: 250
-                height:150
-                x: parent.width - width
-                y:parent.height + 10
-                modal: true
-                focus: true
-
-                background: Rectangle{
-                    color: "#1e293b"
-                    radius: 10
-                    border.color: "#b0e2ff"
-                    border.width: 2
-                }
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 20
-                    spacing: 15
-
-                    Text{
-                        text: "Hardware Settings"
-                        color: "#ffffff"
-                        font.bold: true
-                        font.pixelSize: 16
-                        Layout.alignment: Qt.AlignHCenter
-                    }
-                    RowLayout {
-                        Layout.alignment: Qt.AlignHCenter
-                        spacing: 10
-
-                        Text{
-                            text: "Frequency: "
-                            color: "#b0e2ff"
-                            font.bold: true
-                        }
-                        ComboBox {
-                            id: freqComboBox
-                            model: ["50 Hz", "60 Hz"]
-                            Layout.preferredWidth: 100
-
-                            currentIndex: smmManager.frequency === 60 ? 1 : 0
-                            onActivated: function(index) {
-                                if(index === 0) {
-                                    smmManager.setFrequency(50 );
-                                } else {
-                                    smmManager.setFrequency(60);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
     }
+
     ColumnLayout {
         anchors.top: sensorStatusRow.bottom
         anchors.left: parent.left
