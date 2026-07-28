@@ -22,6 +22,7 @@ class SmmManager : public QObject
     Q_PROPERTY(bool pulseSearch READ pulseSearch NOTIFY pulseSearchChanged )
     Q_PROPERTY(bool isPortConnected READ isPortConnected NOTIFY isPortConnectedChanged)
     Q_PROPERTY(int waveform READ waveform NOTIFY waveformChanged )
+    Q_PROPERTY(int frequency READ frequency WRITE setFrequency NOTIFY frequencyChanged )
 
 
 public:
@@ -35,6 +36,7 @@ public:
     bool pulseSearch() const {return m_pulseSearch; }
     bool isPortConnected() const {return m_isPortConnected;}
     bool waveform() const {return m_waveform;}
+    int frequency() const {return m_frequency; }
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
@@ -46,6 +48,7 @@ public:
     Q_INVOKABLE void clearFilter();
     Q_INVOKABLE void clearHistory();
     Q_INVOKABLE void deleteHistoryByDateRange(const QString &startDate, const QString &endDate);
+    Q_INVOKABLE void setFrequency(int freq);
 
 public slots:
     void injectTestData(const QByteArray &data) {
@@ -65,6 +68,7 @@ signals:
     void pulseSearchChanged(bool pulseSearch);
     void isPortConnectedChanged(bool isPortConnected);
     void waveformChanged(int newWaveform);
+    void frequencyChanged(int newFrequency);
 
 
 private slots:
@@ -106,6 +110,9 @@ private:
     QString m_filterEndDate;
 
     bool m_isSimulationMode = false;
+
+    int m_frequency = 50;
+    quint8 m_currentConfigByte = 0xB2;
 };
 
 #endif // SMMMANAGER_H

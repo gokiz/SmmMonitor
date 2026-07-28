@@ -80,7 +80,7 @@ void SmmManager::sendNextHandshakeByte(){
     case 2: toSend = 0xFF; break;
     default:
         qDebug() << " The handshake has been completed, now waiting for the packetized data.";
-        sendBiolightSpo2Setting(0xB2);
+        sendBiolightSpo2Setting(m_currentConfigByte);
         return;
     }
 
@@ -336,7 +336,25 @@ void SmmManager::deleteHistoryByDateRange(const QString &startDate, const QStrin
         qDebug() << "Data between" << startStr << " and " << endStr << "has been successfully deleted.";
     }
     refreshHistoryModel();
+}
 
+void SmmManager::setFrequency(int freq){
+    if(m_frequency == freq)
+        return;
+
+    m_frequency = freq;
+    emit frequencyChanged(m_frequency);
+
+    m_currentConfigByte &= ~0x003;
+
+    if(freq == 50) {
+        m_currentConfigByte |= 0x02;
+    } else if(freq == 60){
+        m_currentConfigByte |= 0x03;
+    }
+
+    sendBiolightSpo2Setting(m_currentConfigByte);
+    qDebug() << "Frequency setting changed to " << "Hz. New Byte: " << QString::number(m_currentConfigByte, 16).toUpper();
 }
 
 void SmmManager::parseBuffer(){

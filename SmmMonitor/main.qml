@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import CustomControls 1.0
 import QtQuick.Layouts 1.15
+import QtQuick.Controls 2.15
 
 Window {
     id: root
@@ -182,6 +183,89 @@ Window {
                 dbWindow.show()
             }
         }
+        Rectangle{
+            id: settingsButton
+            anchors.top: dbButton.top
+            anchors.bottom: dbButton.bottom
+            anchors.right: dbButton.left
+            anchors.rightMargin: 15
+            anchors.margins: 15
+            width: 100
+            height: 49
+            color: "#473c8b"
+            radius: 10
+            border.color: "#b0e2ff"
+            border.width: 1
+
+            Text{
+                text: "Settings"
+                color:"#ffffff"
+                font.pixelSize: 14
+                font.bold: true
+                anchors.centerIn: parent
+            }
+            MouseArea{
+                anchors.fill: parent
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    settingsPopup.open()
+                }
+            }
+            Popup{
+                id:settingsPopup
+                width: 250
+                height:150
+                x: parent.width - width
+                y:parent.height + 10
+                modal: true
+                focus: true
+
+                background: Rectangle{
+                    color: "#1e293b"
+                    radius: 10
+                    border.color: "#b0e2ff"
+                    border.width: 2
+                }
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: 20
+                    spacing: 15
+
+                    Text{
+                        text: "Hardware Settings"
+                        color: "#ffffff"
+                        font.bold: true
+                        font.pixelSize: 16
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+                    RowLayout {
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 10
+
+                        Text{
+                            text: "Frequency: "
+                            color: "#b0e2ff"
+                            font.bold: true
+                        }
+                        ComboBox {
+                            id: freqComboBox
+                            model: ["50 Hz", "60 Hz"]
+                            Layout.preferredWidth: 100
+
+                            currentIndex: smmManager.frequency === 60 ? 1 : 0
+                            onActivated: function(index) {
+                                if(index === 0) {
+                                    smmManager.setFrequency(50 );
+                                } else {
+                                    smmManager.setFrequency(60);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }
     ColumnLayout {
         anchors.top: sensorStatusRow.bottom
