@@ -3,6 +3,7 @@ import QtQuick.Window 2.15
 import CustomControls 1.0
 import QtQuick.Layouts 1.15
 import QtQuick.Controls 2.15
+import Backend 1.0
 
 Window {
     id: root
@@ -116,46 +117,80 @@ Window {
     }
     //sensör açık/kapalı gösterimi
     Row {
-        id:sensorStatusRow
+        id: topHeaderRow
         anchors.top: parent.top
         anchors.left:parent.left
         anchors.margins: 15
-        spacing: 10
-        Rectangle {
-            width:12
-            height: 12
-            radius: 6
-            color: smmManager.isPortConnected ? "#10b981" : "#ef4444"
+        spacing: 40
+
+        Column{
+            spacing: 8
             anchors.verticalCenter: parent.verticalCenter
 
-            SequentialAnimation on opacity {
-                loops: Animation.Infinite
-                running: !smmManager.isPortConnected
-                NumberAnimation {to: 0.2; duration: 500}
-                NumberAnimation {to: 1.0; duration: 500}
+            Row{
+                id:sensorStatusRow
+                spacing: 10
+
+                Rectangle {
+                    width:12
+                    height: 12
+                    radius: 6
+                    color: smmManager.isPortConnected ? "#10b981" : "#ef4444"
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    SequentialAnimation on opacity {
+                        loops: Animation.Infinite
+                        running: !smmManager.isPortConnected
+                        NumberAnimation {to: 0.2; duration: 500}
+                        NumberAnimation {to: 1.0; duration: 500}
+                    }
+                }
+                Text{
+                    text: smmManager.isPortConnected ? "Sensor On" : "Sensor Off"
+                    color: smmManager.isPortConnected ? "#10b981" : "#ef4444"
+                    font.pixelSize: 14
+                    font.bold: true
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+            Text{
+                text: "Signal Normal"
+                color: "#10b981"
+                font.pixelSize: 14
+                font.bold: true
+                visible: !smmManager.isSignalWeak && smmManager.isPortConnected
             }
         }
-        Text{
-            text: smmManager.isPortConnected ? "Sensor On" : "Sensor Off"
-            color: smmManager.isPortConnected ? "#10b981" : "#ef4444"
-            font.pixelSize: 14
-            font.bold: true
+        Rectangle {
+            width: 150
+            height: 60
+            color: "#1e293b"
+            border.color: "#0ea5e9"
+            border.width: 1
+            radius: 8
             anchors.verticalCenter: parent.verticalCenter
+
+            Column{
+                anchors.centerIn: parent
+                spacing: 5
+                Text{
+                    text: "Frequency: " + smmManager.frequency + " Hz"
+                    color: "#ffffff"
+                    font.bold: true
+                    font.pixelSize: 13
+                }
+                Text{
+                    text: "Mode: " + (smmManager.patientMode === SmmManager.Adult ? "Adult" :
+                                                                                    (smmManager.patientMode === SmmManager.Newborn ? "Newborn" : "Pediatric"))
+                    color: "#0ea5e9"
+                    font.bold: true
+                    font.pixelSize: 13
+
+                }
+            }
         }
     }
-    //Signal yazısı
-    Text{
-        anchors.top: sensorStatusRow.bottom
-        anchors.left:parent.left
-        anchors.topMargin: 8 //iki yazı arası boşluk
-        anchors.leftMargin: 15
-        text:"Signal Normal"
-        color: "#10b981"
-        font.pixelSize: 14
-        font.bold: true
-        //hem sinyal zayıf olmayacak hem de port bağlı olacak
-        visible: !smmManager.isSignalWeak && smmManager.isPortConnected
-    }
+
     OptionsButton {
         id: optionsMenu
         anchors.top: parent.top
@@ -169,7 +204,7 @@ Window {
     }
 
     ColumnLayout {
-        anchors.top: sensorStatusRow.bottom
+        anchors.top: topHeaderRow.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom

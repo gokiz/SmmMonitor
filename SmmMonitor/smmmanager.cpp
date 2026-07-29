@@ -365,24 +365,17 @@ void SmmManager::parseIncomingData(const QByteArray &data) {
     quint8 modeValue= static_cast<quint8>(data.at(6));
 
     PatientMode parsedMode;
-
-    switch(modeValue){
+    switch (modeValue) {
     case 0:
         parsedMode = PatientMode::Adult;
-        qDebug() << "Patient mode detected: Adult Mode";
         break;
-
     case 1:
-        parsedMode = PatientMode::Pediatric;
-        qDebug() << "Patient mode detected: Pediatric Mode";
-        break;
-
-    case 2:
         parsedMode = PatientMode::Newborn;
-        qDebug() << "Patient mode detected: Newborn Mode";
+        break;
+    case 2:
+        parsedMode = PatientMode::Pediatric;
         break;
     default:
-        qWarning() << "Unknowing Patient Mode Value";
         return;
     }
 

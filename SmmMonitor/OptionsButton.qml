@@ -29,7 +29,7 @@ Rectangle {
     Popup {
         id:optionsPopup
         width: 250
-        height: 200
+        height: 250
         x: root.width - width
         y: root.height + 10
 
@@ -46,7 +46,10 @@ Rectangle {
             anchors.fill: parent
             anchors.margins: 15
             clip: true
-            ScrollBar.vertical.policy: Scrollbar.AsNeeded
+
+            contentWidth: availableWidth
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
             ColumnLayout {
                 width: parent.width
@@ -80,7 +83,7 @@ Rectangle {
                 RowLayout {
                     id:freqRow
                     visible: false
-                    Layout.alignment: Qt.AlignHLeft
+                    Layout.alignment: Qt.AlignLeft
 
                     Text{
                         text:"Frequency: "
@@ -115,17 +118,17 @@ Rectangle {
                     }
                     ComboBox {
                         id: patientsComboBox
-                        model: ["Adult", "Pediatric", "Newborn"]
+                        model: ["Adult", "Newborn", "Pediatric"]
                         Layout.preferredWidth: 105
                         currentIndex: smmManager.patientMode === SmmManager.Adult ? 0 :
-                                                                                    (smmManager.patientMode === SmmManager.Pediatric ? 1 : 2)
-                        onActivated: {
+                                                                                    (smmManager.patientMode === SmmManager.Newborn ? 1 : 2)
+                        onActivated: function(index) {
                             if (index === 0) {
                                 smmManager.setPatientMode(SmmManager.Adult);
                             } else if (index === 1) {
-                                smmManager.setPatientMode(SmmManager.Pediatric);
-                            } else if (index === 2) {
                                 smmManager.setPatientMode(SmmManager.Newborn);
+                            } else if (index === 2) {
+                                smmManager.setPatientMode(SmmManager.Pediatric);
                             }
                         }
                     }
@@ -140,11 +143,11 @@ Rectangle {
                 }
                 //show data butonu
                 Text{
-                    text: "Show thw Data"
+                    text: "Show the Data"
                     color: "#0ea5e9"
                     font.bold: true
                     font.pixelSize: 15
-                    Layout.alignment: Qt.AlignLeft
+                    Layout.alignment: Qt.AlignHCenter
 
                     MouseArea {
                         anchors.fill: parent
