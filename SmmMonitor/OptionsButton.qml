@@ -1,26 +1,25 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import Backend 1.0
 
-Rectangle{
+Rectangle {
     id: root
     width: 100
-    height: 49
+    height: 50
     color: "#473c8b"
     radius: 10
-    border.color: "#b0e2ff"
-    border.width: 1
 
     signal openDatabase()
 
     Text{
-        text: "Options"
-        color: "#ffffff"
+        text: "OPTIONS"
+        color:"#ffffff"
         font.pixelSize: 14
         font.bold: true
         anchors.centerIn: parent
     }
-    MouseArea{
+    MouseArea {
         anchors.fill: parent
         cursorShape: Qt.PointingHandCursor
         onClicked: {
@@ -28,12 +27,11 @@ Rectangle{
         }
     }
     Popup {
-        id: optionsPopup
+        id:optionsPopup
         width: 250
         height: 200
-
         x: root.width - width
-        y:root.height + 10
+        y: root.height + 10
 
         modal: true
         focus: true
@@ -44,89 +42,122 @@ Rectangle{
             border.color: "#b0e2ff"
             border.width: 2
         }
-        ColumnLayout {
+        ScrollView {
             anchors.fill: parent
-            anchors.margins: 25
-            spacing: 15
+            anchors.margins: 15
+            clip: true
+            ScrollBar.vertical.policy: Scrollbar.AsNeeded
 
-            //başlık
-            Text{
-                text: "OPTIONS"
-                color: "#ffffff"
-                font.bold: true
-                font.pixelSize: 15
-                Layout.alignment: Qt.AlignHCenter
-            }
-            //settings
-            Text {
-                text: "Settings"
-                color: "#0ea5e9"
-                font.bold: true
-                font.pixelSize: 15
-                Layout.alignment: Qt.AlignHCenter
-
-                MouseArea{
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        freqRow.visible = !freqRow.visible
-                    }
-                }
-            }
-            //açılır kapanır frekans drpdown kutusu
-            RowLayout {
-                id: freqRow
-                visible: false //baslangicta gizli
-                Layout.alignment: Qt.AlignLeft
-                Layout.leftMargin: 15
+            ColumnLayout {
+                width: parent.width
+                spacing: 15
 
                 Text{
-                    text: "Freq: "
-                    color: "#473c8b"
+                    text: "OPTIONS"
+                    color:"#ffffff"
                     font.bold: true
+                    font.pixelSize: 15
+                    Layout.alignment: Qt.AlignHCenter
                 }
-                ComboBox {
-                    id: freqComboBox
-                    model: ["50 Hz", "60 Hz"]
-                    Layout.preferredWidth:  85
-                    currentIndex: smmManager.frequency === 60 ? 1 : 0
+                Text{
+                    text: "Settings"
+                    color: "#0ea5e9"
+                    font.bold: true
+                    font.pixelSize: 15
+                    Layout.alignment: Qt.AlignHCenter
 
-                    onActivated: function(index) {
-                        if( index === 0) {
-                            smmManager.setFrequency(50);
-                        } else {
-                            smmManager.setFrequency(60);
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            freqRow.visible = !freqRow.visible
+                            patients.visible = !patients.visible
                         }
                     }
                 }
-            }
-            //ayırıcı çizgi
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 1
-                color: "#473c8b"
-                Layout.topMargin: 5
-                Layout.bottomMargin: 5
-            }
-            // show the data butonu
-            Text{
-                text: "Show the Data"
-                color: "#0ea5e9"
-                font.bold: true
-                font.pixelSize: 15
-                Layout.alignment: Qt.AlignLeft
 
-                MouseArea{
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        root.openDatabase()
-                        optionsPopup.close()
+                //açılır kapanır frekans dropdown
+                RowLayout {
+                    id:freqRow
+                    visible: false
+                    Layout.alignment: Qt.AlignHLeft
+
+                    Text{
+                        text:"Frequency: "
+                        color: "#473c8b"
+                        font.bold: true
+                    }
+                    ComboBox {
+                        id:freqComboBox
+                        model: ["50 Hz", "60 Hz"]
+                        Layout.preferredWidth: 85
+                        currentIndex: smmManager.frequency === 60 ? 1 : 0
+
+                        onActivated: function(index) {
+                            if(index === 0){
+                                smmManager.setFrequency(50);
+                            } else {
+                                smmManager.setFrequency(60);
+                            }
+                        }
                     }
                 }
-            }
-            Item{
-                Layout.fillHeight: true
+                RowLayout {
+                    id: patients
+                    visible: false
+                    Layout.alignment: Qt.AlignLeft
+
+                    Text {
+                        text: "Patient Mode: "
+                        color: "#473c8b"
+                        font.bold: true
+
+                    }
+                    ComboBox {
+                        id: patientsComboBox
+                        model: ["Adult", "Pediatric", "Newborn"]
+                        Layout.preferredWidth: 105
+                        currentIndex: smmManager.patientMode === SmmManager.Adult ? 0 :
+                                                                                    (smmManager.patientMode === SmmManager.Pediatric ? 1 : 2)
+                        onActivated: {
+                            if (index === 0) {
+                                smmManager.setPatientMode(SmmManager.Adult);
+                            } else if (index === 1) {
+                                smmManager.setPatientMode(SmmManager.Pediatric);
+                            } else if (index === 2) {
+                                smmManager.setPatientMode(SmmManager.Newborn);
+                            }
+                        }
+                    }
+                }
+                //ayırıcı çizgi
+                Rectangle{
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: "#473c8b"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+                //show data butonu
+                Text{
+                    text: "Show thw Data"
+                    color: "#0ea5e9"
+                    font.bold: true
+                    font.pixelSize: 15
+                    Layout.alignment: Qt.AlignLeft
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            root.openDatabase()
+                            optionsPopup.close()
+                        }
+                    }
+                }
+                Item{
+                    Layout.fillHeight: true //menüyü yukarı yaslar
+                }
             }
         }
     }

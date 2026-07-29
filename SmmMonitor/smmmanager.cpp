@@ -357,6 +357,81 @@ void SmmManager::setFrequency(int freq){
     qDebug() << "Frequency setting changed to " << "Hz. New Byte: " << QString::number(m_currentConfigByte, 16).toUpper();
 }
 
+void SmmManager::parseIncomingData(const QByteArray &data) {
+    if(data.size() < 9){
+        qWarning() << "The incoming data is incomplete or incorrect.";
+        return;
+    }
+    quint8 modeValue= static_cast<quint8>(data.at(6));
+
+    PatientMode parsedMode;
+
+    switch(modeValue){
+    case 0:
+        parsedMode = PatientMode::Adult;
+        qDebug() << "Patient mode detected: Adult Mode";
+        break;
+
+    case 1:
+        parsedMode = PatientMode::Pediatric;
+        qDebug() << "Patient mode detected: Pediatric Mode";
+        break;
+
+    case 2:
+        parsedMode = PatientMode::Newborn;
+        qDebug() << "Patient mode detected: Newborn Mode";
+        break;
+    default:
+        qWarning() << "Unknowing Patient Mode Value";
+        return;
+    }
+
+    if(m_patientMode != parsedMode){
+        m_patientMode = parsedMode;
+        emit patientModeChanged(m_patientMode);
+    }
+}
+
+QByteArray SmmManager::updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode){
+    if(currentPacket.isEmpty()){
+        currentPacket.append(static_cast<char>(0x00));
+    }
+    quint8 byteData = static_cast<quint8>(currentPacket.at(0));
+
+    byteData &= 0xE3;
+
+    byteData |= (static_cast<quint8>(newMode) << 2);
+
+    currentPacket[0] = static_cast<char>(byteData);
+    return currentPacket;
+}
+
+void SmmManager::setPatientMode(PatientMode mode){
+    //mod aynı ise gereksiz bildirim gönderme
+    if(m_patientMode == mode) {
+        return;
+    }
+    //durumu güncelle ve qmle bildir
+    m_patientMode = mode;
+    emit patientModeChanged(m_patientMode);
+
+    //cihaza gönderilecek veri hazılransın
+    QByteArray commandPacket;
+    commandPacket.append(static_cast<char>(m_currentConfigByte));
+
+    //paketi yeni mode göre güncelle
+    commandPacket = updatePatientModeInPacket(commandPacket, m_patientMode);
+
+    m_currentConfigByte =  static_cast<quint8>(commandPacket.at(0));
+
+    if(m_serialPort && m_serialPort->isOpen()){
+        m_serialPort->write(commandPacket);
+        qDebug() << "Patient Mode Setting Sent to the Module (Hex): " << commandPacket.toHex();
+    } else{
+        qWarning() << "The serial port is closed, mode setting could not be sent.";
+    }
+}
+
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
     while(true) {

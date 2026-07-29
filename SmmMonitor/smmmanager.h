@@ -24,10 +24,18 @@ class SmmManager : public QObject
     Q_PROPERTY(int waveform READ waveform NOTIFY waveformChanged )
     Q_PROPERTY(int frequency READ frequency WRITE setFrequency NOTIFY frequencyChanged )
 
+    Q_PROPERTY(PatientMode patientMode READ patientMode WRITE setPatientMode NOTIFY patientModeChanged )
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
     ~SmmManager();
+
+    enum class PatientMode : quint8 {
+        Adult = 4,
+        Newborn = 5,
+        Pediatric = 6
+    };
+    Q_ENUM(PatientMode);
 
     int saturation() const { return m_saturation; }
     int pulseRate() const {return m_pulseRate; }
@@ -35,8 +43,10 @@ public:
     bool beepVoice() const {return m_beepVoice; }
     bool pulseSearch() const {return m_pulseSearch; }
     bool isPortConnected() const {return m_isPortConnected;}
-    bool waveform() const {return m_waveform;}
+    int waveform() const {return m_waveform;}
     int frequency() const {return m_frequency; }
+
+    PatientMode patientMode() const {return m_patientMode; }
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
@@ -49,6 +59,11 @@ public:
     Q_INVOKABLE void clearHistory();
     Q_INVOKABLE void deleteHistoryByDateRange(const QString &startDate, const QString &endDate);
     Q_INVOKABLE void setFrequency(int freq);
+    Q_INVOKABLE void setPatientMode(PatientMode mode);
+
+
+
+    QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
 
 public slots:
     void injectTestData(const QByteArray &data) {
@@ -58,6 +73,7 @@ public slots:
     void setSimulationMode(bool isSimulating) {
         m_isSimulationMode = isSimulating;
     }
+    void parseIncomingData(const QByteArray &data);
 
 
 signals:
@@ -69,6 +85,7 @@ signals:
     void isPortConnectedChanged(bool isPortConnected);
     void waveformChanged(int newWaveform);
     void frequencyChanged(int newFrequency);
+    void patientModeChanged(SmmManager::PatientMode mode);
 
 
 private slots:
@@ -88,6 +105,8 @@ private:
     bool m_beepVoice = false;
     bool m_pulseSearch = false;
     int m_waveform = 0;
+
+    PatientMode m_patientMode = PatientMode::Adult; //varsayılan hasta yetişkin
 
     void handlePortError(QSerialPort::SerialPortError error);
     void tryReconnect();

@@ -11,12 +11,16 @@ int main(int argc, char *argv[]){
     SmmSimulator smmSimulator;
 
     qmlRegisterType<WaveformPlotter>("CustomControls", 1, 0, "WaveformPlotter");
+    qmlRegisterUncreatableType<SmmManager>("Backend", 1, 0, "SmmManager", "SmmManager nesnesi QML'den olusturulamaz!");
+
+
 
     /* QObject::connect(&smmSimulator, &SmmSimulator::mockDataReady,
                      &smmManager, &SmmManager::injectTestData);
     */
 
     QQmlApplicationEngine engine;
+
 
     //C++ sınıfı QML tarafına 'smmManager' olarak kaydediliyor
     engine.rootContext()->setContextProperty("smmManager", &smmManager);
