@@ -15,9 +15,9 @@ int main(int argc, char *argv[]){
 
 
 
-    /* QObject::connect(&smmSimulator, &SmmSimulator::mockDataReady,
+     QObject::connect(&smmSimulator, &SmmSimulator::mockDataReady,
                      &smmManager, &SmmManager::injectTestData);
-    */
+
 
     QQmlApplicationEngine engine;
 

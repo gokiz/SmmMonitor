@@ -1,13 +1,14 @@
 #include <QDebug>
 #include "smmsimulator.h"
 
-SmmSimulator::SmmSimulator(QObject *parent) : QObject(parent), m_simState(0), m_currentSpo2(98), m_currentPulse(75)
+SmmSimulator::SmmSimulator(QObject *parent) : QObject(parent), m_simState(0), m_currentSpo2(98), m_currentPulse(75),m_isManuelMode(false)
 {
     m_simTimer = new QTimer(this);
     connect(m_simTimer, &QTimer::timeout, this, &SmmSimulator::simulateNextState);
 
 }
 void SmmSimulator::startSimulation(){
+    m_isManuelMode = false;
     m_simState = 0;
     m_simTimer->start(2000); //her 2 saniyede bir ekran guncellenecek
     qDebug() << "Görsel simülasyon başlıyor";
@@ -22,6 +23,17 @@ quint8 SmmSimulator::calcChecksum(quint8 len, quint8 code, const QByteArray &dat
     for (char b : data) sum += static_cast<quint8>(b);
     return static_cast<quint8>(sum & 0xFF);
 }
+void SmmSimulator::forceState(int stateIndex){
+    if(stateIndex >= 0 && stateIndex <= 4) {
+        m_isManuelMode = true;
+        m_simState = stateIndex;
+        if(!m_simTimer->isActive()){
+            m_simTimer->stop();
+        }
+        simulateNextState();
+
+    }
+}
 
 void SmmSimulator::simulateNextState(){
     quint8 data0 = 0x00;
@@ -30,26 +42,33 @@ void SmmSimulator::simulateNextState(){
     case 0:
         qDebug() << "[SIMULASYON]: Normal Değerler";
         m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(95,101));
-        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(60,91));
+        m_currentPulse= static_cast<quint8>(QRandomGenerator::global()->bounded(60,91));
         break;
     case 1:
         qDebug() << "[SIMULASYON]: Kritik Oksijen ve Nabız";
-        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(70, 90));
-        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(110, 151));
+        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(70,90));
+        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(110,151));
         break;
-    case 2: // Zayıf Sinyal
-        qDebug() << "[SİMÜLASYON]: Zayıf Sinyal Uyarısı";
-        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(80, 95));
-        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(40, 120));
+    case 2:
+        qDebug() << "[SIMULASYON]: Zayıf Sinyal Uyarısı";
+        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(80,95));
+        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(40,120));
         data0 |= 0x10;
         break;
-    case 3: // Sensör Kapalı
+    case 3:
         qDebug() << "[SİMÜLASYON]: Sensör Çıkarıldı";
         m_currentSpo2 = 0;
         m_currentPulse = 0;
         data0 |= 0x40;
         break;
+    case 4: // Nabız Aranıyor (Eksik olan durum eklendi)
+        qDebug() << "[SİMÜLASYON]: Nabız Aranıyor";
+        m_currentSpo2 = 0;
+        m_currentPulse = 0;
+        data0 |= 0x80; // Pulse Search biti aktif edildi
+        break;
     }
+
     const quint8 len = 10;
     const quint8 code = 21;
 
@@ -74,6 +93,7 @@ void SmmSimulator::simulateNextState(){
 
     emit mockDataReady(fullPacket);
 
-    m_simState = (m_simState + 1) % 4 ;
-
+    if (!m_isManuelMode) {
+        m_simState = (m_simState + 1) % 5;
+    }
 }

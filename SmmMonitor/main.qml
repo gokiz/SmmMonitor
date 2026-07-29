@@ -17,65 +17,6 @@ Window {
     property bool isMeasuringPulse: false
 
 
-    Row{
-        visible: false
-        anchors.top: parent.top
-        anchors.right: optionsMenu.left //options butonunun solu
-        anchors.margins: 15
-        spacing: 10
-        //testi baslat
-        Rectangle {
-            width: 70
-            height: 30
-            color: "transparent"
-            border.color: "#ef4444"
-            border.width: 1
-            radius: 5
-            Text {
-                text: "Test Başlat"
-                color: "#ef4444"
-                anchors.centerIn: parent
-                font.pixelSize: 11
-                font.bold: true
-            }
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    smmManager.setSimulationMode(true);
-                    //simulasyon başlatma komutu
-                    smmSimulator.startSimulation();
-                    // Port bağlıymış gibi gösterelim ki "Sensörü Açın" uyarıları vs düzgün çalışsın
-                    // (smmmanager.cpp'de isPortConnected'ı test için public yaptıysan veya bir test fonksiyonu varsa)
-                }
-            }
-        }
-        //testi bitir
-        Rectangle {
-            width: 70
-            height: 30
-            color: "transparent"
-            border.color: "#6b7280"
-            border.width: 1
-            radius: 5
-            Text {
-                text: "Test Bitir"
-                color: "#6b7280"
-                anchors.centerIn: parent
-                font.pixelSize: 11
-                font.bold: true
-            }
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    smmSimulator.stopSimulation();
-                    smmManager.setSimulationMode(false);
-                }
-            }
-        }
-    }
-
     //değerlere göre renk döndüren yardımcı fonksiyon
     function getSpo2Color(val){
         if(val === 0) return "#b0e2ff"; //Gri(okuma yok)
@@ -182,7 +123,7 @@ Window {
                 Text{
                     text: "Mode: " + (smmManager.patientMode === SmmManager.Adult ? "Adult" :
                                                                                     (smmManager.patientMode === SmmManager.Newborn ? "Newborn" : "Pediatric"))
-                    color: "#0ea5e9"
+                    color: "#ffffff"
                     font.bold: true
                     font.pixelSize: 13
 

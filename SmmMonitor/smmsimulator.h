@@ -15,6 +15,7 @@ public:
     //qmlde butona basip baslatıp durudurabilmek icin
     Q_INVOKABLE void startSimulation();
     Q_INVOKABLE void stopSimulation();
+    Q_INVOKABLE void forceState(int stateIndex);
 
 signals:
 
@@ -29,6 +30,8 @@ private:
     int m_simState;
     quint8 m_currentSpo2;
     quint8 m_currentPulse;
+
+    bool m_isManuelMode;
 
     static quint8 calcChecksum(quint8 len, quint8 code, const QByteArray &data);
 

@@ -28,8 +28,8 @@ Rectangle {
     }
     Popup {
         id:optionsPopup
-        width: 250
-        height: 250
+        width: 260
+        height: 310
         x: root.width - width
         y: root.height + 10
 
@@ -155,6 +155,68 @@ Rectangle {
                         onClicked: {
                             root.openDatabase()
                             optionsPopup.close()
+                        }
+                    }
+                }
+                //TEST MENUSU
+
+                Rectangle{
+                    id:testMenuBtn
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.topMargin: 5
+                    width: 120
+                    height: 30
+                    color: "transparent"
+                    border.color: "#ef4444"
+                    border.width: 1
+                    radius: 5
+
+                    Text{
+                        text:"Test Menüsü ▼"
+                        color: "#ef4444"
+                        anchors.centerIn: parent
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
+                    MouseArea{
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked:  {
+                            testDropdown.open()
+                        }
+                    }
+                    Menu {
+                        id:testDropdown
+                        y: 35
+
+                        MenuItem {
+                            text: "▶ Otomatik Simülasyon (2 sn)"
+                            onClicked: smmSimulator.startSimulation()
+                        }
+                        MenuItem {
+                            text: "⏹ Otomatik Simülasyonu Durdur"
+                            onClicked: smmSimulator.stopSimulation()
+                        }
+                        MenuSeparator {} //araya imce çizgi çeker
+                        MenuItem {
+                            text: "Manuel: Normal Değerler"
+                            onClicked: smmSimulator.forceState(0)
+                        }
+                        MenuItem {
+                            text: "Manuel: Kritik Değerler"
+                            onClicked: smmSimulator.forceState(1)
+                        }
+                        MenuItem {
+                            text: "Manuel: Zayıf Sinyal"
+                            onClicked: smmSimulator.forceState(2)
+                        }
+                        MenuItem {
+                            text: "Manuel: Sensör Koptu"
+                            onClicked: smmSimulator.forceState(3)
+                        }
+                        MenuItem{
+                            text: "Manuel: Nabız Aranıyor"
+                            onClicked: smmSimulator.forceState(4)
                         }
                     }
                 }

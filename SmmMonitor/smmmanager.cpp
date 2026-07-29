@@ -262,22 +262,50 @@ QSqlQueryModel* SmmManager::getHistoryModel() {
 
 void SmmManager::handlePortError(QSerialPort::SerialPortError error){
     if(error == QSerialPort::ResourceError){
-        qDebug() << "Port connection lost (Cable disconnected)!";
-        m_serialPort->close();
+        qWarning() << "Port connection lost (Cable disconnected)!" << m_serialPort->errorString();
 
-        if(m_isPortConnected){
+        if(m_serialPort->isOpen()){
+            m_serialPort->close();
+        }
+        if(m_isPortConnected) {
             m_isPortConnected = false;
             emit isPortConnectedChanged(m_isPortConnected);
         }
-        onWatchdogTimeout();
 
-        m_reconnectTimer->start(2000);
+        if (m_reconnectTimer && !m_reconnectTimer->isActive()) {
+            m_isReconnectLogPrinted = false;
+            m_reconnectTimer->start(2000);
+        }
     }
 }
 void SmmManager::tryReconnect(){
-    if(!m_lastPortName.isEmpty()){
-        qDebug() << "The port is being rescanning: " << m_lastPortName;
-        connectToModule(m_lastPortName);
+    if(m_lastPortName.isEmpty()){
+        return;
+    }
+
+    m_serialPort->setPortName(m_lastPortName);
+    if(m_serialPort->open(QIODevice::ReadWrite)){
+        qDebug() << "The SMM modul has been successfully connected: " << m_lastPortName;
+
+        m_isReconnectLogPrinted = false;
+
+        if(m_reconnectTimer && m_reconnectTimer->isActive()){
+            m_reconnectTimer->stop();
+        }
+
+        if(!m_isPortConnected) {
+            m_isPortConnected = true;
+            emit isPortConnectedChanged(m_isPortConnected);
+        }
+        initializeBiolightModule();
+        m_watchdogTimer->start(1000);
+    }else {
+        if(!m_isReconnectLogPrinted){
+            qWarning() << "The port could not be opened!" << m_serialPort->errorString();
+            qDebug() << "The port is being rescanning: " << m_lastPortName;
+
+            m_isReconnectLogPrinted = true;
+        }
     }
 }
 void SmmManager::filterHistoryByDate(const QString &startDate, const QString &endDate) {

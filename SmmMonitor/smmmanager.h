@@ -132,6 +132,8 @@ private:
 
     int m_frequency = 50;
     quint8 m_currentConfigByte = 0xB2;
+
+    bool m_isReconnectLogPrinted = false;
 };
 
 #endif // SMMMANAGER_H
