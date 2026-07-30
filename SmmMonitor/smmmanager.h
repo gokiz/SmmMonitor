@@ -37,6 +37,13 @@ public:
     };
     Q_ENUM(PatientMode);
 
+    enum class AveragingSeconds {
+        sec4 = 4,
+        sec8 = 8,
+        sec16 = 16
+    };
+    Q_ENUM(AveragingSeconds);
+
     int saturation() const { return m_saturation; }
     int pulseRate() const {return m_pulseRate; }
     bool isSignalWeak() const {return m_isSignalWeak; }
@@ -47,6 +54,7 @@ public:
     int frequency() const {return m_frequency; }
 
     PatientMode patientMode() const {return m_patientMode; }
+    AveragingSeconds averageSecond() const {return m_averageSecond; }
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
@@ -60,6 +68,7 @@ public:
     Q_INVOKABLE void deleteHistoryByDateRange(const QString &startDate, const QString &endDate);
     Q_INVOKABLE void setFrequency(int freq);
     Q_INVOKABLE void setPatientMode(PatientMode mode);
+    Q_INVOKABLE void setAverageSecond (AveragingSeconds seconds);
 
 
 
@@ -86,6 +95,7 @@ signals:
     void waveformChanged(int newWaveform);
     void frequencyChanged(int newFrequency);
     void patientModeChanged(SmmManager::PatientMode mode);
+    void averageSecondChanged(SmmManager::AveragingSeconds seconds);
 
 
 private slots:
@@ -107,6 +117,7 @@ private:
     int m_waveform = 0;
 
     PatientMode m_patientMode = PatientMode::Adult; //varsayılan hasta yetişkin
+    AveragingSeconds m_averageSecond = AveragingSeconds::sec4;
 
     void handlePortError(QSerialPort::SerialPortError error);
     void tryReconnect();

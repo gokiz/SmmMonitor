@@ -124,6 +124,10 @@ quint8 SmmManager::calcChecksum(quint8 len, quint8 code, const QByteArray &data)
 }
 
 void SmmManager::readData(){
+    if(m_isSimulationMode){
+        m_serialPort->readAll();
+        return;
+    }
     QByteArray rawData = m_serialPort->readAll();
     // Ham veriyi yazdıran qDebug kapatıldı. Böylece arayüz kilitlemeyecek.
     m_buffer.append(rawData);
@@ -451,6 +455,30 @@ void SmmManager::setPatientMode(PatientMode mode){
     } else{
         qWarning() << "The serial port is closed, mode setting could not be sent.";
     }
+}
+void SmmManager::setAverageSecond(AveragingSeconds seconds) {
+    if(m_averageSecond == seconds)
+        return;
+
+    m_averageSecond = seconds;
+    emit averageSecondChanged(m_averageSecond);
+
+    m_currentConfigByte &= ~0xE0;
+
+    quint8 bitsVal = 0;
+
+    if(seconds == AveragingSeconds::sec4) {
+        bitsVal = 0x4;
+    }else if(seconds == AveragingSeconds::sec8){
+        bitsVal = 0x5;
+    }else if(seconds == AveragingSeconds::sec16) {
+        bitsVal = 0x6;
+    }
+    m_currentConfigByte |= (bitsVal << 5);
+
+    sendBiolightSpo2Setting(m_currentConfigByte);
+    qDebug() << "Averaging Second changed. New Config Byte (Hex):" << QString::number(m_currentConfigByte, 16).toUpper();
+
 }
 
 void SmmManager::parseBuffer(){

@@ -75,6 +75,7 @@ Rectangle {
                         onClicked: {
                             freqRow.visible = !freqRow.visible
                             patients.visible = !patients.visible
+                            avgseconds.visible = !avgseconds.visible
                         }
                     }
                 }
@@ -133,6 +134,34 @@ Rectangle {
                         }
                     }
                 }
+                RowLayout {
+                    id:avgseconds
+                    visible: false
+                    Layout.alignment: Qt.AlignLeft
+
+                    Text{
+                        text: "Average Seconds: "
+                        color: "#473c8b"
+                        font.bold: true
+                    }
+                    ComboBox{
+                        id: avgSecondsComboBox
+                        model: ["4 Seconds", "8 Seconds", "16 seconds"]
+                        Layout.preferredWidth: 100
+                        currentIndex: smmManager.averageSecond ===SmmManager.sec4 ? 0 :
+                                                                                    (smmManager.averageSecond === SmmManager.sec8 ? 1 : 2)
+                        onActivated: function(index) {
+                            if(index === 0){
+                                smmManager.setAverageSecond(SmmManager.sec4);
+                            }else if (index === 1) {
+                                smmManager.setAverageSecond(SmmManager.sec8);
+                            }else if(index === 2) {
+                                smmManager.setAverageSecond(SmmManager.sec16);
+                            }
+                        }
+                    }
+                }
+
                 //ayırıcı çizgi
                 Rectangle{
                     Layout.fillWidth: true
@@ -191,11 +220,17 @@ Rectangle {
 
                         MenuItem {
                             text: "▶ Otomatik Simülasyon (2 sn)"
-                            onClicked: smmSimulator.startSimulation()
+                            onClicked: {
+                                smmManager.setSimulationMode(true)
+                                smmSimulator.startSimulation()
+                            }
                         }
                         MenuItem {
                             text: "⏹ Otomatik Simülasyonu Durdur"
-                            onClicked: smmSimulator.stopSimulation()
+                            onClicked: {
+                                smmSimulator.stopSimulation()
+                                smmManager.setSimulationMode(false)
+                            }
                         }
                         MenuSeparator {} //araya imce çizgi çeker
                         MenuItem {

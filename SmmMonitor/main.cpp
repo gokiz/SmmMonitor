@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
 
 
 
-     QObject::connect(&smmSimulator, &SmmSimulator::mockDataReady,
+    QObject::connect(&smmSimulator, &SmmSimulator::mockDataReady,
                      &smmManager, &SmmManager::injectTestData);
 
 
@@ -29,14 +29,15 @@ int main(int argc, char *argv[]){
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl){
-        if(!obj && url == objUrl)
-            QCoreApplication::exit(-1);
-    }, Qt::QueuedConnection);
+                         if(!obj && url == objUrl)
+                             QCoreApplication::exit(-1);
+                     }, Qt::QueuedConnection);
     engine.load(url);
 
     smmManager.connectToModule("COM5"); //Modülün adı bilgisayar bağlantısına göre değişir
     //modülü aktifleştir
     smmManager.initializeBiolightModule();
+
 
 
     return app.exec();
