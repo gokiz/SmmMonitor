@@ -6,8 +6,9 @@
 #include <QDir>
 
 SmmManager::SmmManager(QObject *parent)
-    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0), m_isSignalWeak(false),m_beepVoice(false)
+    : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0), m_isSignalWeak(false),m_beepVoice(false),m_averageSecond(AveragingSeconds::sec4)
 {
+
     connect(m_serialPort, &QSerialPort::readyRead, this, &SmmManager::readData);
 
     m_handshakeTimer = new QTimer(this);

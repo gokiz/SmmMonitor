@@ -25,6 +25,7 @@ class SmmManager : public QObject
     Q_PROPERTY(int frequency READ frequency WRITE setFrequency NOTIFY frequencyChanged )
 
     Q_PROPERTY(PatientMode patientMode READ patientMode WRITE setPatientMode NOTIFY patientModeChanged )
+    Q_PROPERTY(AveragingSeconds averageSecond READ averageSecond WRITE setAverageSecond NOTIFY averageSecondChanged)
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -37,7 +38,7 @@ public:
     };
     Q_ENUM(PatientMode);
 
-    enum class AveragingSeconds {
+    enum class AveragingSeconds : quint8 {
         sec4 = 4,
         sec8 = 8,
         sec16 = 16
@@ -54,7 +55,7 @@ public:
     int frequency() const {return m_frequency; }
 
     PatientMode patientMode() const {return m_patientMode; }
-    AveragingSeconds averageSecond() const {return m_averageSecond; }
+    AveragingSeconds averageSecond() const { return m_averageSecond;}
     //UART bağlantısını başlatma fonksiyonu
     Q_INVOKABLE void connectToModule(const QString &portName);
     // İsim aynı kaldı ama artık gerçek "eski protokolden yeniye geçiş"
@@ -142,7 +143,7 @@ private:
     bool m_isSimulationMode = false;
 
     int m_frequency = 50;
-    quint8 m_currentConfigByte = 0xB2;
+    quint8 m_currentConfigByte = 0x82;
 
     bool m_isReconnectLogPrinted = false;
 };

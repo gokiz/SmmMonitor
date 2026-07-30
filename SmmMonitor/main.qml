@@ -15,6 +15,13 @@ Window {
 
     property bool isMeasuringSpo2: false
     property bool isMeasuringPulse: false
+    Component.onCompleted: {
+        console.log("averageSecond:", smmManager.averageSecond,
+                    "sec4:", SmmManager.sec4,
+                    "sec8:", SmmManager.sec8,
+                    "sec16:", SmmManager.sec16)
+        console.log("Adult:", SmmManager.Adult, "Newborn:", SmmManager.Newborn, "Pediatric:", SmmManager.Pediatric)
+    }
 
 
     //değerlere göre renk döndüren yardımcı fonksiyon
@@ -103,8 +110,8 @@ Window {
             }
         }
         Rectangle {
-            width: 150
-            height: 60
+            width: 170
+            height: 80
             color: "#1e293b"
             border.color: "#0ea5e9"
             border.width: 1
@@ -113,20 +120,27 @@ Window {
 
             Column{
                 anchors.centerIn: parent
-                spacing: 5
+                spacing: 4
                 Text{
                     text: "Frequency: " + smmManager.frequency + " Hz"
                     color: "#ffffff"
                     font.bold: true
-                    font.pixelSize: 13
+                    font.pixelSize: 12
                 }
                 Text{
                     text: "Mode: " + (smmManager.patientMode === SmmManager.Adult ? "Adult" :
                                                                                     (smmManager.patientMode === SmmManager.Newborn ? "Newborn" : "Pediatric"))
                     color: "#ffffff"
                     font.bold: true
-                    font.pixelSize: 13
+                    font.pixelSize: 12
 
+                }
+                Text {
+                    text: "Avg. Seconds: " + (smmManager.averageSecond === 4 ? "4 Sec" :
+                                                 (smmManager.averageSecond === 8 ? "8 Sec" : "16 Sec"))
+                    color: "#ffffff"
+                    font.bold: true
+                    font.pixelSize: 12
                 }
             }
         }

@@ -148,15 +148,16 @@ Rectangle {
                         id: avgSecondsComboBox
                         model: ["4 Seconds", "8 Seconds", "16 seconds"]
                         Layout.preferredWidth: 100
-                        currentIndex: smmManager.averageSecond ===SmmManager.sec4 ? 0 :
-                                                                                    (smmManager.averageSecond === SmmManager.sec8 ? 1 : 2)
+                        currentIndex: smmManager.averageSecond === 4 ? 0 :
+                                                                      (smmManager.averageSecond === 8 ? 1 : 2)
+
                         onActivated: function(index) {
                             if(index === 0){
-                                smmManager.setAverageSecond(SmmManager.sec4);
+                                smmManager.setAverageSecond(4);
                             }else if (index === 1) {
-                                smmManager.setAverageSecond(SmmManager.sec8);
+                                smmManager.setAverageSecond(8);
                             }else if(index === 2) {
-                                smmManager.setAverageSecond(SmmManager.sec16);
+                                smmManager.setAverageSecond(16);
                             }
                         }
                     }
