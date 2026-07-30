@@ -188,6 +188,13 @@ Rectangle {
                         }
                     }
                 }
+                Rectangle{
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: "#473c8b"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
                 //TEST MENUSU
 
                 Rectangle{
@@ -253,6 +260,49 @@ Rectangle {
                         MenuItem{
                             text: "Manuel: Nabız Aranıyor"
                             onClicked: smmSimulator.forceState(4)
+                        }
+                    }
+                }
+                Rectangle{
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: "#473c8b"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+
+                ColumnLayout{
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing:5
+
+                    Text {
+                        text: "Port"
+                        color: "#0ea5e9"
+                        font.bold: true
+                        font.pixelSize: 15
+                        Layout.alignment: Qt.AlignHCenter
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                portComboBox.visible = !portComboBox.visible;
+                                if(portComboBox.visible){
+                                    smmManager.refreshPorts();
+                                }
+                            }
+                        }
+                    }
+                    ComboBox{
+                        id:portComboBox
+                        visible: false
+                        model:smmManager.availablePorts
+                        Layout.preferredWidth: 110
+                        Layout.alignment: Qt.AlignHCenter
+
+                        onActivated: function(index) {
+                            var selectedPort = portComboBox.textAt(index);
+                            smmManager.connectToModule(selectedPort);
                         }
                     }
                 }

@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QStandardPaths>
 #include <QDir>
+#include <QSerialPortInfo>
 
 SmmManager::SmmManager(QObject *parent)
     : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0), m_isSignalWeak(false),m_beepVoice(false),m_averageSecond(AveragingSeconds::sec4)
@@ -33,6 +34,17 @@ SmmManager::~SmmManager()
     if(m_serialPort->isOpen()){
         m_serialPort->close();
     }
+}
+QStringList SmmManager::availablePorts() const {
+    QStringList ports;
+    const QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
+    for (const QSerialPortInfo &info : infos){
+        ports.append(info.portName());
+    }
+    return ports;
+}
+void SmmManager::refreshPorts() {
+    emit availablePortsChanged();
 }
 
 void SmmManager::connectToModule(const QString &portName) {

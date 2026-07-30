@@ -26,6 +26,8 @@ class SmmManager : public QObject
 
     Q_PROPERTY(PatientMode patientMode READ patientMode WRITE setPatientMode NOTIFY patientModeChanged )
     Q_PROPERTY(AveragingSeconds averageSecond READ averageSecond WRITE setAverageSecond NOTIFY averageSecondChanged)
+    Q_PROPERTY(QStringList availablePorts READ availablePorts  NOTIFY availablePortsChanged)
+
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -70,6 +72,8 @@ public:
     Q_INVOKABLE void setFrequency(int freq);
     Q_INVOKABLE void setPatientMode(PatientMode mode);
     Q_INVOKABLE void setAverageSecond (AveragingSeconds seconds);
+    Q_INVOKABLE void refreshPorts();
+    Q_INVOKABLE QStringList availablePorts() const;
 
 
 
@@ -97,6 +101,7 @@ signals:
     void frequencyChanged(int newFrequency);
     void patientModeChanged(SmmManager::PatientMode mode);
     void averageSecondChanged(SmmManager::AveragingSeconds seconds);
+    void availablePortsChanged();
 
 
 private slots:
