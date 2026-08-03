@@ -233,6 +233,22 @@ Window {
                         anchors.margins: 20
                         visible: smmManager.beepVoice
                     }
+                    Button {
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.margins: 15
+                        width: 30
+                        height: 30
+                        text: "⚙"
+                        font.pixelSize: 15
+                        background: Rectangle {
+                            color: "transparent"
+                        }
+                        onClicked: {
+                            alarmSettingsPopup.open();
+                        }
+                    }
+
                     Column {
                         anchors.centerIn: parent
                         spacing: 10
@@ -393,6 +409,76 @@ Window {
             isMeasuringSpo2 = false;
             isMeasuringPulse = false;
             console.log("Sensor idle: Measurement status reset by timeout.");
+        }
+    }
+    Popup {
+        id: alarmSettingsPopup
+        x: Math.round((root.width - width) / 2)
+        y: Math.round((root.height - height) / 2)
+        width: 320
+        height: 220
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        background: Rectangle {
+            color: "#1e293b"
+            border.color: "#0ea5e9"
+            border.width: 2
+            radius: 8
+        }
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 20
+            Text{
+                text: "SpO2 Alarm Settings"
+                color: "#ffffff"
+                font.bold: true
+                font.pixelSize: 15
+                Layout.alignment: Qt.AlignHCenter
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: "Lower Limit (%):"
+                    color: "#94a3b8"
+                    font.pixelSize: 12
+                    font.bold: true
+                    Layout.fillWidth: true
+                }
+                SpinBox {
+                    from: 50
+                    to: 100
+                    value: smmManager.spo2LowerLimit
+                    onValueChanged: {
+                        if(value !== smmManager.spo2LowerLimit) {
+                            smmManager.spo2LowerLimit = value;
+                        }
+                    }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: "Upper Limit (%)"
+                    color: "#94a3b8"
+                    font.pixelSize: 12
+                    font.bold:  true
+                    Layout.fillWidth:true
+                }
+                SpinBox {
+                    from: 50
+                    to: 100
+                    value: smmManager.spo2UpperLimit
+                    onValueChanged: {
+                        if(value !== smmManager.spo2UpperLimit) {
+                            smmManager.spo2UpperLimit = value
+                        }
+                    }
+                }
+            }
         }
     }
 }

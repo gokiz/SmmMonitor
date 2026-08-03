@@ -548,6 +548,23 @@ void SmmManager::setAverageSecond(AveragingSeconds seconds) {
     qDebug() << "Averaging Second changed. New Config Byte (Hex):" << QString::number(m_currentConfigByte, 16).toUpper();
 
 }
+void SmmManager::setSpo2LowerLimit (int limit) {
+    if(m_spo2LowerLimit == limit)
+        return;
+
+    m_spo2LowerLimit = limit;
+    emit spo2LowerLimitChanged();
+    qDebug() << "SpO2 Lower Limit has been updated:" << m_spo2LowerLimit;
+}
+
+void SmmManager::setSpo2UpperLimit(int  limit) {
+    if(m_spo2UpperLimit == limit)
+        return;
+
+    m_spo2UpperLimit = limit;
+    emit spo2UpperLimitChanged();
+    qDebug() << "SpO2 Upper Limit has been updated:" << m_spo2UpperLimit;
+}
 
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
@@ -645,6 +662,12 @@ void SmmManager::parseBuffer(){
 
                     emit saturationChanged(m_saturation);
                     emit pulseRateChanged(m_pulseRate);
+
+                    if(m_saturation > 0) {
+                        if(m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit) {
+                            qWarning() << "ALARM! SpO2 value is out of bounds:" << m_saturation;
+                        }
+                    }
 
                     // 3. OPTİMİZASYON: Veritabanının UI'ı kilitlemesini önlemek için 2 saniyede BİR kaydet
                     qint64 currentTime = QDateTime::currentMSecsSinceEpoch();

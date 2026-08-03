@@ -29,6 +29,9 @@ class SmmManager : public QObject
     Q_PROPERTY(QStringList availablePorts READ availablePorts  NOTIFY availablePortsChanged)
     Q_PROPERTY(bool hasConnectionError READ hasConnectionError NOTIFY hasConnectionErrorChanged )
 
+    Q_PROPERTY(int spo2LowerLimit READ spo2LowerLimit WRITE setSpo2LowerLimit NOTIFY spo2LowerLimitChanged )
+    Q_PROPERTY(int spo2UpperLimit READ spo2UpperLimit WRITE setSpo2UpperLimit NOTIFY spo2UpperLimitChanged )
+
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -57,6 +60,10 @@ public:
     int waveform() const {return m_waveform;}
     int frequency() const {return m_frequency; }
 
+    // Bu satırların public bloğu altında olduğundan emin ol
+    int spo2LowerLimit() const { return m_spo2LowerLimit; }
+    int spo2UpperLimit() const { return m_spo2UpperLimit; }
+
     PatientMode patientMode() const {return m_patientMode; }
     AveragingSeconds averageSecond() const { return m_averageSecond;}
     //UART bağlantısını başlatma fonksiyonu
@@ -78,6 +85,8 @@ public:
 
     Q_INVOKABLE void disconnectPort();
 
+    Q_INVOKABLE void setSpo2LowerLimit(int limit);
+    Q_INVOKABLE void setSpo2UpperLimit(int limit);
 
 
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
@@ -106,6 +115,8 @@ signals:
     void averageSecondChanged(SmmManager::AveragingSeconds seconds);
     void availablePortsChanged();
     void hasConnectionErrorChanged(bool hasError);
+    void spo2LowerLimitChanged();
+    void spo2UpperLimitChanged();
 
 
 private slots:
@@ -158,6 +169,9 @@ private:
     bool m_isReconnectLogPrinted = false;
     bool m_hasConnectionError = false;
     bool hasConnectionError() const {return m_hasConnectionError;}
+
+    int m_spo2LowerLimit = 90;
+    int m_spo2UpperLimit = 100;
 };
 
 #endif // SMMMANAGER_H
