@@ -74,6 +74,13 @@ Window {
         Column{
             spacing: 8
             anchors.verticalCenter: parent.verticalCenter
+            Text{
+                text: "Please select the correct port"
+                color: "#94a3b8"
+                font.pixelSize: 11
+                font.bold: true
+                visible: smmManager.hasConnectionError
+            }
 
             Row{
                 id:sensorStatusRow

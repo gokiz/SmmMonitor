@@ -27,6 +27,7 @@ class SmmManager : public QObject
     Q_PROPERTY(PatientMode patientMode READ patientMode WRITE setPatientMode NOTIFY patientModeChanged )
     Q_PROPERTY(AveragingSeconds averageSecond READ averageSecond WRITE setAverageSecond NOTIFY averageSecondChanged)
     Q_PROPERTY(QStringList availablePorts READ availablePorts  NOTIFY availablePortsChanged)
+    Q_PROPERTY(bool hasConnectionError READ hasConnectionError NOTIFY hasConnectionErrorChanged )
 
 
 public:
@@ -75,6 +76,8 @@ public:
     Q_INVOKABLE void refreshPorts();
     Q_INVOKABLE QStringList availablePorts() const;
 
+    Q_INVOKABLE void disconnectPort();
+
 
 
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
@@ -102,6 +105,7 @@ signals:
     void patientModeChanged(SmmManager::PatientMode mode);
     void averageSecondChanged(SmmManager::AveragingSeconds seconds);
     void availablePortsChanged();
+    void hasConnectionErrorChanged(bool hasError);
 
 
 private slots:
@@ -109,6 +113,7 @@ private slots:
     void sendNextHandshakeByte();
     void onWatchdogTimeout(); // Modül uyuduğunda tetiklenecek
 private:
+    quint64 m_lastDbSaveTime = 0;
     void parseBuffer(); //gelen baytları SMM protokolüne göre işler
     static quint8 calcChecksum(quint8 len, quint8 code, const QByteArray &data);
     void sendBiolightSpo2Setting(quint8 configByte = 0xB2);
@@ -151,6 +156,8 @@ private:
     quint8 m_currentConfigByte = 0x82;
 
     bool m_isReconnectLogPrinted = false;
+    bool m_hasConnectionError = false;
+    bool hasConnectionError() const {return m_hasConnectionError;}
 };
 
 #endif // SMMMANAGER_H

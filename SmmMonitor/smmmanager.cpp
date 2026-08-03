@@ -49,6 +49,21 @@ void SmmManager::refreshPorts() {
 
 void SmmManager::connectToModule(const QString &portName) {
 
+    if(m_serialPort->isOpen()) {
+        m_serialPort->close();
+    }
+
+    m_buffer.clear();
+    m_watchdogTimer->stop();
+    m_reconnectTimer->stop();
+
+    m_saturation = 0;
+    m_pulseRate = 0;
+    m_waveform = 0;
+    emit saturationChanged(m_saturation);
+    emit pulseRateChanged(m_pulseRate);
+    emit waveformChanged(m_waveform);
+
     m_lastPortName = portName;
     m_serialPort->setPortName(portName);
     m_serialPort->setBaudRate(375000); // smm modülüne göre ayarlan
@@ -64,13 +79,26 @@ void SmmManager::connectToModule(const QString &portName) {
             m_isPortConnected = true;
             emit isPortConnectedChanged(m_isPortConnected);
         }
-        m_reconnectTimer->stop();
+
         m_watchdogTimer->start(1000); // port açıldığında 1 saniyelik geri sayımı başlat
     } else {
         qDebug() << "The Port could not be opened!" << m_serialPort->errorString();
+
+        if(m_isPortConnected) {
+            m_isPortConnected = false;
+            emit isPortConnectedChanged(m_isPortConnected);
+        }
+        if(!m_hasConnectionError) {
+            m_hasConnectionError = true;
+            emit hasConnectionErrorChanged(m_hasConnectionError);
+        }
         if(!m_reconnectTimer->isActive()){
             m_reconnectTimer->start(2000);
         }
+    }
+    if(m_hasConnectionError) {
+        m_hasConnectionError = false;
+        emit hasConnectionErrorChanged(m_hasConnectionError);
     }
 }
 
@@ -104,6 +132,28 @@ void SmmManager::sendNextHandshakeByte(){
 
     m_handshakeStep++;
     m_handshakeTimer->start(50); // her byte arasında 50 ms bekle
+}
+
+void SmmManager::disconnectPort() {
+    if(m_serialPort->isOpen()) {
+        m_serialPort->close();
+    }
+    m_watchdogTimer->stop();
+    m_reconnectTimer->stop();
+    m_buffer.clear();
+
+    m_saturation = 0;
+    m_pulseRate = 0;
+    m_waveform = 0;
+    emit saturationChanged(m_saturation);
+    emit pulseRateChanged(m_pulseRate);
+    emit waveformChanged(m_waveform);
+
+    if(m_isPortConnected) {
+        m_isPortConnected = false;
+        emit isPortConnectedChanged(m_isPortConnected);
+    }
+    qDebug() << "Port manually disconnected and cleaned!";
 }
 void SmmManager::sendBiolightSpo2Setting(quint8 configByte) {
     if (!m_serialPort->isOpen())
@@ -163,6 +213,11 @@ void SmmManager::onWatchdogTimeout() {
         emit isSignalWeakChanged(m_isSignalWeak);
         emit beepVoiceChanged(m_beepVoice);
         emit pulseSearchChanged(m_pulseSearch);
+    }
+
+    if(!m_hasConnectionError) {
+        m_hasConnectionError = true;
+        emit hasConnectionErrorChanged(m_hasConnectionError);
     }
     qDebug() << "[WARNING] Data flow interrupted! Module is being awakened.";
     initializeBiolightModule(); //el sıkışma komutlarını baştan gönder
@@ -243,7 +298,7 @@ void SmmManager::insertMeasurement(int spo2, int pulseRate) {
     if (!query.exec()) {
         qDebug() << "Could not be saved to the database:" << query.lastError().text();
     } else {
-        emit refreshHistoryModel();
+        refreshHistoryModel();
     }
 }
 
@@ -496,15 +551,13 @@ void SmmManager::setAverageSecond(AveragingSeconds seconds) {
 
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
+    QByteArray headerBytes;
+    headerBytes.append(static_cast<char>(0xAA));
+    headerBytes.append(static_cast<char>(0x55));
+
     while(true) {
-        int headerIndex = -1;
-        for(int i = 0; i + 1 < m_buffer.size(); ++i){
-            if(static_cast<quint8>(m_buffer[i]) == 0xAA &&
-                static_cast<quint8>(m_buffer[i + 1]) == 0x55){
-                headerIndex = i;
-                break;
-            }
-        }
+        // 1. OPTİMİZASYON: Yavaş for döngüsü yerine indexOf ile anında bulma (İşlemciyi rahatlatır)
+        int headerIndex = m_buffer.indexOf(headerBytes);
 
         if (headerIndex < 0) {
             if (m_buffer.size() > 1)
@@ -530,15 +583,19 @@ void SmmManager::parseBuffer(){
         const quint8 expectedChecksum = calcChecksum(len, code, data);
 
         if(receivedChecksum != expectedChecksum){
-            // ÇOK ÖNEMLİ DEĞİŞİKLİK: Checksum hatası varsa sadece ilk 0xAA baytını siliyoruz.
-            // Böylece gerçek paketi yanlışlıkla silme riskini (sonsuz hata döngüsünü) yok ediyoruz.
-            m_buffer.remove(0, 1);
+            // 2. OPTİMİZASYON: Hatalı pakette AA 55'i komple sil ki sonsuz döngüye girmesin
+            m_buffer.remove(0, 2);
             continue;
         }
 
         if(code == BIOLIGHT_CODE && data.size() >= 9){
-            //başarılı paket aldık, bekçi zamanlayıcısı sıfırlansın ki modül yeniden başlatılmasın
             m_watchdogTimer->start(1000);
+
+            if (m_hasConnectionError) {
+                m_hasConnectionError = false;
+                emit hasConnectionErrorChanged(m_hasConnectionError);
+            }
+
             const quint8 data0 = static_cast<quint8>(data[0]);
             const bool inSensorOff = (data0 & 0x40) != 0;
             const bool isWeak = (data0 & (1 << 4)) != 0;
@@ -557,17 +614,14 @@ void SmmManager::parseBuffer(){
 
             if(m_isSignalWeak != isWeak){
                 m_isSignalWeak = isWeak;
-                qDebug() << ">>> Signal Status Changed -> Weak Signal:" << m_isSignalWeak;
                 emit isSignalWeakChanged(m_isSignalWeak);
             }
+
             const quint8 rawSpo2 = static_cast<quint8>(data[3]);
             const quint8 prMsb = static_cast<quint8>(data[4]);
             const quint8 prLsb = static_cast<quint8>(data[5]);
             int rawPulseRate = (prMsb << 8 | prLsb);
-
             const quint8 rawWaveform = static_cast<quint8>(data[1]);
-
-
 
             if(inSensorOff || rawSpo2 == 127 || rawPulseRate == 255 || rawWaveform == 127){
                 if(m_saturation != 0) {
@@ -589,16 +643,18 @@ void SmmManager::parseBuffer(){
                     m_saturation = rawSpo2;
                     m_pulseRate = rawPulseRate;
 
-
                     emit saturationChanged(m_saturation);
                     emit pulseRateChanged(m_pulseRate);
 
-
-                    insertMeasurement(rawSpo2, rawPulseRate);
+                    // 3. OPTİMİZASYON: Veritabanının UI'ı kilitlemesini önlemek için 2 saniyede BİR kaydet
+                    qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+                    if (currentTime - m_lastDbSaveTime > 2000) {
+                        insertMeasurement(rawSpo2, rawPulseRate);
+                        m_lastDbSaveTime = currentTime;
+                    }
                 }
                 m_waveform = rawWaveform;
                 emit waveformChanged(m_waveform);
-
             }
         }
         m_buffer.remove(0, totalPacketSize);
