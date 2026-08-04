@@ -35,6 +35,10 @@ class SmmManager : public QObject
     Q_PROPERTY(bool isSpo2AlarmActive READ isSpo2AlarmActive NOTIFY isSpo2AlarmActiveChanged )
     Q_PROPERTY(AlarmPriority spo2AlarmPriority READ spo2AlarmPriority WRITE setSpo2AlarmPriority NOTIFY spo2AlarmPriorityChanged )
 
+    Q_PROPERTY(int pulseLowerLimit READ pulseLowerLimit WRITE setPulseLowerLimit NOTIFY pulseLowerLimitChanged )
+    Q_PROPERTY(int pulseUpperLimit READ pulseUpperLimit WRITE setPulseUpperLimit NOTIFY pulseUpperLimitChanged )
+    Q_PROPERTY(bool isPulseAlarmActive READ isPulseAlarmActive NOTIFY isPulseAlarmActiveChanged )
+
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -76,6 +80,11 @@ public:
     bool isSpo2AlarmActive() const {return m_isSpo2AlarmActive;}
     AlarmPriority spo2AlarmPriority() const {return m_spo2AlarmPriority;}
 
+    int pulseLowerLimit() const {return m_pulseLowerLimit;}
+    int pulseUpperLimit() const {return m_pulseUpperLimit;}
+    bool isPulseAlarmActive() const {return m_isPulseAlarmActive;}
+
+
     PatientMode patientMode() const {return m_patientMode; }
     AveragingSeconds averageSecond() const { return m_averageSecond;}
     //UART bağlantısını başlatma fonksiyonu
@@ -101,6 +110,9 @@ public:
     Q_INVOKABLE void setSpo2UpperLimit(int limit);
 
     Q_INVOKABLE void setSpo2AlarmPriority(AlarmPriority priority);
+
+    Q_INVOKABLE void setPulseLowerLimit(int limit);
+    Q_INVOKABLE void setPulseUpperLimit(int limit);
 
 
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
@@ -133,6 +145,10 @@ signals:
     void spo2UpperLimitChanged();
     void isSpo2AlarmActiveChanged(bool active);
     void spo2AlarmPriorityChanged(AlarmPriority priority);
+    void pulseLowerLimitChanged();
+    void pulseUpperLimitChanged();
+    void isPulseAlarmActiveChanged();
+
 
 
 private slots:
@@ -192,6 +208,11 @@ private:
     bool m_isSpo2AlarmActive = false;
 
     AlarmPriority m_spo2AlarmPriority = AlarmPriority::Red;
+
+    int m_pulseLowerLimit = 60;
+    int m_pulseUpperLimit = 100;
+
+    bool m_isPulseAlarmActive = false;
 };
 
 #endif // SMMMANAGER_H

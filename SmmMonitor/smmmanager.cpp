@@ -574,6 +574,24 @@ void SmmManager::setSpo2AlarmPriority(AlarmPriority priority) {
 
     qDebug() << "SpO2 Alarm Priority has been updated. New value:" << static_cast<int>(priority);
 }
+void SmmManager::setPulseLowerLimit(int limit) {
+    if(m_pulseLowerLimit == limit) {
+        return;
+    }
+    m_pulseLowerLimit = limit;
+    emit pulseLowerLimitChanged();
+    qDebug() << "Pulse Lower Limit has been updated:" << m_pulseLowerLimit;
+}
+
+void SmmManager::setPulseUpperLimit(int limit) {
+    if(m_pulseUpperLimit == limit)
+        return;
+
+    m_pulseUpperLimit = limit;
+    emit pulseUpperLimitChanged();
+
+    qDebug() << "Pulse Upper Limit has been updated:" << m_pulseUpperLimit;
+}
 
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
@@ -666,6 +684,7 @@ void SmmManager::parseBuffer(){
                     m_isSpo2AlarmActive = false;
                     emit isSpo2AlarmActiveChanged(m_isSpo2AlarmActive);
                 }
+
                 m_waveform = 0;
                 emit waveformChanged(m_waveform);
             } else {
@@ -692,6 +711,18 @@ void SmmManager::parseBuffer(){
                             qWarning() << "ALARM! SpO2 value is out of bounds:" << m_saturation;
                         }
                     }
+
+                    bool currentPulseAlarmState = false;
+                    if(m_pulseRate > 0) {
+                        if(m_pulseRate < m_pulseLowerLimit || m_pulseRate > m_pulseUpperLimit) {
+                            currentPulseAlarmState = true;
+                        }
+                    }
+                    if(m_isPulseAlarmActive != currentPulseAlarmState) {
+                        m_isPulseAlarmActive = currentPulseAlarmState;
+                        emit isPulseAlarmActiveChanged();
+                    }
+
 
                     // 3. OPTİMİZASYON: Veritabanının UI'ı kilitlemesini önlemek için 2 saniyede BİR kaydet
                     qint64 currentTime = QDateTime::currentMSecsSinceEpoch();

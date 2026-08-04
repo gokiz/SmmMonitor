@@ -217,13 +217,39 @@ Window {
                 loops: Animation.Infinite
                 running: smmManager.isSpo2AlarmActive
                 NumberAnimation {to: 0.3; duration: 600}
-                NumberAnimation {to: 0.3; duration: 600}
+                NumberAnimation {to: 1.0; duration: 600}
             }
             Row {
                 anchors.centerIn: parent
                 spacing: 10
                 Text {
                     text: "⚠️ ALARM: SpO2 Value is Out of Range!"
+                    color: "#ffffff"
+                    font.pixelSize: 15
+                    font.bold: true
+                }
+            }
+        }
+        Rectangle {
+            Layout.alignment: Qt.AlignHCenter
+            width: 670
+            height: 45
+            color: "#ef4444"
+
+            radius: 12
+            visible: smmManager.isPulseAlarmActive && smmManager.isPortConnected
+
+            SequentialAnimation on opacity {
+                loops: Animation.Infinite
+                running: smmManager.isPulseAlarmActive
+                NumberAnimation {to: 0.3; duration: 600}
+                NumberAnimation {to: 1.0; duration: 600}
+            }
+            Row {
+                anchors.centerIn: parent
+                spacing: 10
+                Text {
+                    text: "⚠️ ALARM: Pulse Value is Out of Range!"
                     color: "#ffffff"
                     font.pixelSize: 15
                     font.bold: true
@@ -283,7 +309,7 @@ Window {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                alarmSettingsPopup.open()
+                                spo2SettingsPopup.open()
                             }
                         }
                     }
@@ -333,6 +359,20 @@ Window {
                         anchors.right: parent.right
                         anchors.margins: 20
                         visible: smmManager.beepVoice
+                    }
+                    Button {
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.margins: 15
+                        text: "⚙"
+                        font.pixelSize: 15
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                pulseSettingsPopup.open()
+                            }
+                        }
                     }
                     Column {
                         anchors.centerIn: parent
@@ -451,7 +491,7 @@ Window {
         }
     }
     Popup {
-        id: alarmSettingsPopup
+        id: spo2SettingsPopup
         x: Math.round((root.width - width) / 2)
         y: Math.round((root.height - height) / 2)
         width: 320
@@ -466,11 +506,14 @@ Window {
             border.width: 2
             radius: 8
         }
+
+
         ColumnLayout {
             anchors.fill: parent
             anchors.margins: 20
-            spacing: 20
-            Text{
+            spacing: 15
+
+            Text {
                 text: "SpO2 Alarm Settings"
                 color: "#ffffff"
                 font.bold: true
@@ -485,28 +528,25 @@ Window {
                     color: "#94a3b8"
                     font.pixelSize: 12
                     font.bold: true
-                    Layout.fillWidth: true
-                }
+                    Layout.fillWidth: true }
                 SpinBox {
                     from: 50
                     to: 100
                     editable: true
                     value: smmManager.spo2LowerLimit
                     onValueChanged: {
-                        if(value !== smmManager.spo2LowerLimit) {
+                        if(value !== smmManager.spo2LowerLimit)
                             smmManager.spo2LowerLimit = value;
-                        }
                     }
                 }
             }
             RowLayout {
                 Layout.fillWidth: true
-                Text {
-                    text: "Upper Limit (%)"
+                Text { text: "Upper Limit (%):"
                     color: "#94a3b8"
                     font.pixelSize: 12
-                    font.bold:  true
-                    Layout.fillWidth:true
+                    font.bold: true
+                    Layout.fillWidth: true
                 }
                 SpinBox {
                     from: 50
@@ -514,28 +554,25 @@ Window {
                     editable: true
                     value: smmManager.spo2UpperLimit
                     onValueChanged: {
-                        if(value !== smmManager.spo2UpperLimit) {
-                            smmManager.spo2UpperLimit = value
-                        }
+                        if(value !== smmManager.spo2UpperLimit) smmManager.spo2UpperLimit = value;
                     }
                 }
             }
-            //alarm önceliği-renk
             RowLayout {
                 Layout.fillWidth: true
-                Layout.topMargin: 10
-                Text{
-                    text: "Priority Color"
+                Text { text: "Priority Color:"
                     color: "#94a3b8"
-                    font.pixelSize: 14
+                    font.pixelSize: 12
                     font.bold: true
                     Layout.fillWidth: true
                 }
                 Rectangle {
-                    width:26; height: 26; radius: 13
+                    width: 24
+                    height: 24
+                    radius: 12
                     color: "#3b82f6"
                     border.color: "#ffffff"
-                    border.width: smmManager.spo2AlarmPriority === SmmManager.Blue ? 3 : 0
+                    border.width: smmManager.spo2AlarmPriority === SmmManager.Blue ? 3 : 0;
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
@@ -543,7 +580,9 @@ Window {
                     }
                 }
                 Rectangle {
-                    width: 26; height: 26; radius: 13
+                    width: 24
+                    height: 24
+                    radius: 12
                     color: "#eab308"
                     border.color: "#ffffff"
                     border.width: smmManager.spo2AlarmPriority === SmmManager.Yellow ? 3 : 0
@@ -554,7 +593,9 @@ Window {
                     }
                 }
                 Rectangle {
-                    width: 26; height:26; radius: 13
+                    width: 24
+                    height: 24
+                    radius: 12
                     color: "#ef4444"
                     border.color: "#ffffff"
                     border.width: smmManager.spo2AlarmPriority === SmmManager.Red ? 3 : 0
@@ -562,6 +603,69 @@ Window {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
                         onClicked: smmManager.spo2AlarmPriority = SmmManager.Red
+                    }
+                }
+            }
+        }
+    }
+    Popup {
+        id: pulseSettingsPopup
+        x: Math.round((root.width - width) / 2)
+        y:  Math.round((root.height - height) / 2)
+        width: 320
+        height: 180
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        background: Rectangle { color: "#1e293b"; border.color: "#0ea5e9"; border.width: 2; radius: 8 }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 20
+            spacing: 15
+
+            Text { text: "Pulse Alarm Settings"
+                color: "#ffffff"
+                font.bold: true
+                font.pixelSize: 15
+                Layout.alignment: Qt.AlignHCenter
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Text { text: "Lower limit (bpm):"
+                    color: "#94a3b8"
+                    font.pixelSize: 12
+                    font.bold: true
+                    Layout.fillWidth: true
+                }
+                SpinBox {
+                    from: 30
+                    to: 250
+                    editable: true
+                    value: smmManager.pulseLowerLimit
+                    onValueChanged: {
+                        if(value !== smmManager.pulseLowerLimit)
+                            smmManager.pulseLowerLimit = value;
+                    }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Text { text: "Upper limit (bpm):"
+                    color: "#94a3b8"
+                    font.pixelSize: 12
+                    font.bold: true
+                    Layout.fillWidth: true
+                }
+                SpinBox {
+                    from: 30
+                    to: 250
+                    editable: true
+                    value: smmManager.pulseUpperLimit
+                    onValueChanged: {
+                        if(value !== smmManager.pulseUpperLimit)
+                            smmManager.pulseUpperLimit = value;
                     }
                 }
             }
