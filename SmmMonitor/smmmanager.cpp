@@ -565,6 +565,15 @@ void SmmManager::setSpo2UpperLimit(int  limit) {
     emit spo2UpperLimitChanged();
     qDebug() << "SpO2 Upper Limit has been updated:" << m_spo2UpperLimit;
 }
+void SmmManager::setSpo2AlarmPriority(AlarmPriority priority) {
+    if(m_spo2AlarmPriority == priority) {
+        return;
+    }
+    m_spo2AlarmPriority = priority;
+    emit spo2AlarmPriorityChanged(m_spo2AlarmPriority);
+
+    qDebug() << "SpO2 Alarm Priority has been updated. New value:" << static_cast<int>(priority);
+}
 
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15

@@ -33,6 +33,7 @@ class SmmManager : public QObject
     Q_PROPERTY(int spo2UpperLimit READ spo2UpperLimit WRITE setSpo2UpperLimit NOTIFY spo2UpperLimitChanged )
 
     Q_PROPERTY(bool isSpo2AlarmActive READ isSpo2AlarmActive NOTIFY isSpo2AlarmActiveChanged )
+    Q_PROPERTY(AlarmPriority spo2AlarmPriority READ spo2AlarmPriority WRITE setSpo2AlarmPriority NOTIFY spo2AlarmPriorityChanged )
 
 
 public:
@@ -53,6 +54,13 @@ public:
     };
     Q_ENUM(AveragingSeconds);
 
+    enum class AlarmPriority {
+        Blue = 0,
+        Yellow,
+        Red
+    };
+    Q_ENUM(AlarmPriority);
+
     int saturation() const { return m_saturation; }
     int pulseRate() const {return m_pulseRate; }
     bool isSignalWeak() const {return m_isSignalWeak; }
@@ -66,6 +74,7 @@ public:
     int spo2LowerLimit() const { return m_spo2LowerLimit; }
     int spo2UpperLimit() const { return m_spo2UpperLimit; }
     bool isSpo2AlarmActive() const {return m_isSpo2AlarmActive;}
+    AlarmPriority spo2AlarmPriority() const {return m_spo2AlarmPriority;}
 
     PatientMode patientMode() const {return m_patientMode; }
     AveragingSeconds averageSecond() const { return m_averageSecond;}
@@ -90,6 +99,8 @@ public:
 
     Q_INVOKABLE void setSpo2LowerLimit(int limit);
     Q_INVOKABLE void setSpo2UpperLimit(int limit);
+
+    Q_INVOKABLE void setSpo2AlarmPriority(AlarmPriority priority);
 
 
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
@@ -121,6 +132,7 @@ signals:
     void spo2LowerLimitChanged();
     void spo2UpperLimitChanged();
     void isSpo2AlarmActiveChanged(bool active);
+    void spo2AlarmPriorityChanged(AlarmPriority priority);
 
 
 private slots:
@@ -178,6 +190,8 @@ private:
     int m_spo2UpperLimit = 100;
 
     bool m_isSpo2AlarmActive = false;
+
+    AlarmPriority m_spo2AlarmPriority = AlarmPriority::Red;
 };
 
 #endif // SMMMANAGER_H

@@ -27,9 +27,15 @@ Window {
     //değerlere göre renk döndüren yardımcı fonksiyon
     function getSpo2Color(val){
         if(val === 0) return "#b0e2ff"; //Gri(okuma yok)
-        if(val >= 95) return "#10b981"; // yeşil(sağlıklı)
-        if(val >= 90) return "#f59e0b"; // turuncu(uyarı)
-        return "#ef4444"; //kırmızı(kritik/tehlike)
+        if (val <= 80) return "#ef4444";
+        // Değer 80'in üstünde ama kullanıcının belirlediği limitlerin dışındaysa, seçilen öncelik rengini yansıt
+        if(val < smmManager.spo2LowerLimit || val > smmManager.spo2UpperLimit) {
+            if (smmManager.spo2AlarmPriority === SmmManager.Blue) return "#3b82f6";
+            if (smmManager.spo2AlarmPriority === SmmManager.Yellow) return "#eab308";
+            return "#ef4444";
+        }
+        if(val <= smmManager.spo2LowerLimit + 2) return "#f59e0b";
+        return "#10b981";
     }
 
     function getPulseColor (val){
@@ -144,7 +150,7 @@ Window {
                 }
                 Text {
                     text: "Avg. Seconds: " + (smmManager.averageSecond === 4 ? "4 Sec" :
-                                                 (smmManager.averageSecond === 8 ? "8 Sec" : "16 Sec"))
+                                                                               (smmManager.averageSecond === 8 ? "8 Sec" : "16 Sec"))
                     color: "#ffffff"
                     font.bold: true
                     font.pixelSize: 12
@@ -195,7 +201,15 @@ Window {
             Layout.alignment: Qt.AlignHCenter
             width: 670
             height: 45
-            color: "#ef4444"
+            color: {
+                if (smmManager.saturation > 0 && smmManager.saturation <= 80) return "#ef4444";
+
+                // Değilse kullanıcının seçtiği renk
+                if (smmManager.spo2AlarmPriority === SmmManager.Blue) return "#3b82f6";
+                if (smmManager.spo2AlarmPriority === SmmManager.Yellow) return "#eab308";
+                return "#ef4444";
+            }
+
             radius: 12
             visible: smmManager.isSpo2AlarmActive && smmManager.isPortConnected
 
@@ -503,6 +517,51 @@ Window {
                         if(value !== smmManager.spo2UpperLimit) {
                             smmManager.spo2UpperLimit = value
                         }
+                    }
+                }
+            }
+            //alarm önceliği-renk
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 10
+                Text{
+                    text: "Priority Color"
+                    color: "#94a3b8"
+                    font.pixelSize: 14
+                    font.bold: true
+                    Layout.fillWidth: true
+                }
+                Rectangle {
+                    width:26; height: 26; radius: 13
+                    color: "#3b82f6"
+                    border.color: "#ffffff"
+                    border.width: smmManager.spo2AlarmPriority === SmmManager.Blue ? 3 : 0
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: smmManager.spo2AlarmPriority = SmmManager.Blue
+                    }
+                }
+                Rectangle {
+                    width: 26; height: 26; radius: 13
+                    color: "#eab308"
+                    border.color: "#ffffff"
+                    border.width: smmManager.spo2AlarmPriority === SmmManager.Yellow ? 3 : 0
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: smmManager.spo2AlarmPriority = SmmManager.Yellow
+                    }
+                }
+                Rectangle {
+                    width: 26; height:26; radius: 13
+                    color: "#ef4444"
+                    border.color: "#ffffff"
+                    border.width: smmManager.spo2AlarmPriority === SmmManager.Red ? 3 : 0
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: smmManager.spo2AlarmPriority = SmmManager.Red
                     }
                 }
             }
