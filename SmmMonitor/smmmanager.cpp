@@ -653,6 +653,10 @@ void SmmManager::parseBuffer(){
                     m_waveform = 0;
                     emit waveformChanged(m_waveform);
                 }
+                if(m_isSpo2AlarmActive) {
+                    m_isSpo2AlarmActive = false;
+                    emit isSpo2AlarmActiveChanged(m_isSpo2AlarmActive);
+                }
                 m_waveform = 0;
                 emit waveformChanged(m_waveform);
             } else {
@@ -662,6 +666,17 @@ void SmmManager::parseBuffer(){
 
                     emit saturationChanged(m_saturation);
                     emit pulseRateChanged(m_pulseRate);
+
+                    bool currentAlarmState = false;
+                    if(m_saturation > 0){
+                        if(m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit){
+                            currentAlarmState = true;
+                        }
+                    }
+                    if(m_isSpo2AlarmActive != currentAlarmState) {
+                        m_isSpo2AlarmActive = currentAlarmState;
+                        emit isSpo2AlarmActiveChanged(m_isSpo2AlarmActive);
+                    }
 
                     if(m_saturation > 0) {
                         if(m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit) {

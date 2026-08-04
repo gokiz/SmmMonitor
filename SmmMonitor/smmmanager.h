@@ -32,6 +32,8 @@ class SmmManager : public QObject
     Q_PROPERTY(int spo2LowerLimit READ spo2LowerLimit WRITE setSpo2LowerLimit NOTIFY spo2LowerLimitChanged )
     Q_PROPERTY(int spo2UpperLimit READ spo2UpperLimit WRITE setSpo2UpperLimit NOTIFY spo2UpperLimitChanged )
 
+    Q_PROPERTY(bool isSpo2AlarmActive READ isSpo2AlarmActive NOTIFY isSpo2AlarmActiveChanged )
+
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -63,6 +65,7 @@ public:
     // Bu satırların public bloğu altında olduğundan emin ol
     int spo2LowerLimit() const { return m_spo2LowerLimit; }
     int spo2UpperLimit() const { return m_spo2UpperLimit; }
+    bool isSpo2AlarmActive() const {return m_isSpo2AlarmActive;}
 
     PatientMode patientMode() const {return m_patientMode; }
     AveragingSeconds averageSecond() const { return m_averageSecond;}
@@ -117,6 +120,7 @@ signals:
     void hasConnectionErrorChanged(bool hasError);
     void spo2LowerLimitChanged();
     void spo2UpperLimitChanged();
+    void isSpo2AlarmActiveChanged(bool active);
 
 
 private slots:
@@ -172,6 +176,8 @@ private:
 
     int m_spo2LowerLimit = 90;
     int m_spo2UpperLimit = 100;
+
+    bool m_isSpo2AlarmActive = false;
 };
 
 #endif // SMMMANAGER_H

@@ -191,6 +191,32 @@ Window {
                 }
             }
         }
+        Rectangle {
+            Layout.alignment: Qt.AlignHCenter
+            width: 670
+            height: 45
+            color: "#ef4444"
+            radius: 12
+            visible: smmManager.isSpo2AlarmActive && smmManager.isPortConnected
+
+            SequentialAnimation on opacity {
+                loops: Animation.Infinite
+                running: smmManager.isSpo2AlarmActive
+                NumberAnimation {to: 0.3; duration: 600}
+                NumberAnimation {to: 0.3; duration: 600}
+            }
+            Row {
+                anchors.centerIn: parent
+                spacing: 10
+                Text {
+                    text: "⚠️ ALARM: SpO2 Value is Out of Range!"
+                    color: "#ffffff"
+                    font.pixelSize: 15
+                    font.bold: true
+                }
+            }
+        }
+
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: "Turn on the Sensor"
@@ -237,15 +263,14 @@ Window {
                         anchors.top: parent.top
                         anchors.left: parent.left
                         anchors.margins: 15
-                        width: 30
-                        height: 30
                         text: "⚙"
                         font.pixelSize: 15
-                        background: Rectangle {
-                            color: "transparent"
-                        }
-                        onClicked: {
-                            alarmSettingsPopup.open();
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                alarmSettingsPopup.open()
+                            }
                         }
                     }
 
@@ -451,6 +476,7 @@ Window {
                 SpinBox {
                     from: 50
                     to: 100
+                    editable: true
                     value: smmManager.spo2LowerLimit
                     onValueChanged: {
                         if(value !== smmManager.spo2LowerLimit) {
@@ -471,6 +497,7 @@ Window {
                 SpinBox {
                     from: 50
                     to: 100
+                    editable: true
                     value: smmManager.spo2UpperLimit
                     onValueChanged: {
                         if(value !== smmManager.spo2UpperLimit) {
