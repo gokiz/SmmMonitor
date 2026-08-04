@@ -38,6 +38,7 @@ class SmmManager : public QObject
     Q_PROPERTY(int pulseLowerLimit READ pulseLowerLimit WRITE setPulseLowerLimit NOTIFY pulseLowerLimitChanged )
     Q_PROPERTY(int pulseUpperLimit READ pulseUpperLimit WRITE setPulseUpperLimit NOTIFY pulseUpperLimitChanged )
     Q_PROPERTY(bool isPulseAlarmActive READ isPulseAlarmActive NOTIFY isPulseAlarmActiveChanged )
+    Q_PROPERTY(AlarmPriority pulseAlarmPriority READ pulseAlarmPriority WRITE setPulseAlarmPriority NOTIFY pulseAlarmPriorityChanged )
 
 
 public:
@@ -83,6 +84,7 @@ public:
     int pulseLowerLimit() const {return m_pulseLowerLimit;}
     int pulseUpperLimit() const {return m_pulseUpperLimit;}
     bool isPulseAlarmActive() const {return m_isPulseAlarmActive;}
+    AlarmPriority pulseAlarmPriority() const {return m_pulseAlarmPriority;}
 
 
     PatientMode patientMode() const {return m_patientMode; }
@@ -113,6 +115,7 @@ public:
 
     Q_INVOKABLE void setPulseLowerLimit(int limit);
     Q_INVOKABLE void setPulseUpperLimit(int limit);
+    Q_INVOKABLE void setPulseAlarmPriority(AlarmPriority priority);
 
 
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
@@ -148,6 +151,7 @@ signals:
     void pulseLowerLimitChanged();
     void pulseUpperLimitChanged();
     void isPulseAlarmActiveChanged();
+    void pulseAlarmPriorityChanged();
 
 
 
@@ -213,6 +217,8 @@ private:
     int m_pulseUpperLimit = 100;
 
     bool m_isPulseAlarmActive = false;
+
+    AlarmPriority m_pulseAlarmPriority = AlarmPriority::Red;
 };
 
 #endif // SMMMANAGER_H

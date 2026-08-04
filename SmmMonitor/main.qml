@@ -40,9 +40,13 @@ Window {
 
     function getPulseColor (val){
         if (val === 0) return "#b0e2ff";
-        if(val >= 60 && val <= 100) return "#0ea5e9";
-        if (val > 100 || (val > 0 && val < 60)) return "#f59e0b";
-        return "#ef4444";
+        if(val <= 40 || val >= 150) return "#ef4444";
+        if(val < smmManager.pulseLowerLimit || val > smmManager.pulseUpperLimit) {
+            if(smmManager.pulseAlarmPriority === SmmManager.Blue) return "#3b82f6";
+            if(smmManager.pulseAlarmPriority === SmmManager.Yellow) return "#eab308";
+            return "#ef4444";
+        }
+        return "#0ea5e9";
     }
 
     //değerlere göre bilgilendirme metni döndüren fonksiyon
@@ -234,7 +238,14 @@ Window {
             Layout.alignment: Qt.AlignHCenter
             width: 670
             height: 45
-            color: "#ef4444"
+            color: {
+                if (smmManager.pulseRate > 0 && smmManager.pulseRate <= 40 || smmManager.pulseRate >= 150) return "#ef4444";
+
+                // Değilse kullanıcının seçtiği renk
+                if (smmManager.pulseAlarmPriority === SmmManager.Blue) return "#3b82f6";
+                if (smmManager.pulseAlarmPriority === SmmManager.Yellow) return "#eab308";
+                return "#ef4444";
+            }
 
             radius: 12
             visible: smmManager.isPulseAlarmActive && smmManager.isPortConnected
@@ -617,7 +628,12 @@ Window {
         modal: true
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        background: Rectangle { color: "#1e293b"; border.color: "#0ea5e9"; border.width: 2; radius: 8 }
+        background: Rectangle {
+            color:"#1e293b"
+            border.color: "#0ea5e9"
+            border.width: 2
+            radius: 8
+        }
 
         ColumnLayout {
             anchors.fill: parent
@@ -666,6 +682,54 @@ Window {
                     onValueChanged: {
                         if(value !== smmManager.pulseUpperLimit)
                             smmManager.pulseUpperLimit = value;
+                    }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Text { text: "Priority Color:"
+                    color: "#94a3b8"
+                    font.pixelSize: 12
+                    font.bold: true
+                    Layout.fillWidth: true
+                }
+                Rectangle {
+                    width: 24
+                    height: 24
+                    radius: 12
+                    color: "#3b82f6"
+                    border.color: "#ffffff"
+                    border.width: smmManager.pulseAlarmPriority === SmmManager.Blue ? 3 : 0;
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: smmManager.pulseAlarmPriority = SmmManager.Blue
+                    }
+                }
+                Rectangle {
+                    width: 24
+                    height: 24
+                    radius: 12
+                    color: "#eab308"
+                    border.color: "#ffffff"
+                    border.width: smmManager.pulseAlarmPriority === SmmManager.Yellow ? 3 : 0
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: smmManager.pulseAlarmPriority = SmmManager.Yellow
+                    }
+                }
+                Rectangle {
+                    width: 24
+                    height: 24
+                    radius: 12
+                    color: "#ef4444"
+                    border.color: "#ffffff"
+                    border.width: smmManager.pulseAlarmPriority === SmmManager.Red ? 3 : 0
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: smmManager.pulseAlarmPriority = SmmManager.Red
                     }
                 }
             }

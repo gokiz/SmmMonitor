@@ -593,8 +593,16 @@ void SmmManager::setPulseUpperLimit(int limit) {
     qDebug() << "Pulse Upper Limit has been updated:" << m_pulseUpperLimit;
 }
 
+void SmmManager::setPulseAlarmPriority(AlarmPriority priority) {
+    if(m_pulseAlarmPriority == priority)
+        return;
+    m_pulseAlarmPriority = priority;
+    emit pulseAlarmPriorityChanged();
+    qDebug() << "Pulse Alarm Priority has bee updated.";
+}
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
+
     QByteArray headerBytes;
     headerBytes.append(static_cast<char>(0xAA));
     headerBytes.append(static_cast<char>(0x55));
