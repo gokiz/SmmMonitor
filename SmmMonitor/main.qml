@@ -187,8 +187,8 @@ Window {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.topMargin: 55
-        spacing: 30
+        anchors.topMargin: 10
+        spacing: 10
 
         Rectangle{
             Layout.alignment: Qt.AlignHCenter
@@ -211,7 +211,7 @@ Window {
         Rectangle {
             Layout.alignment: Qt.AlignHCenter
             width: 670
-            height: 45
+            height: 30
             color: {
                 if (smmManager.saturation > 0 && smmManager.saturation <= 80) return "#ef4444";
 
@@ -244,7 +244,7 @@ Window {
         Rectangle {
             Layout.alignment: Qt.AlignHCenter
             width: 670
-            height: 45
+            height: 30
             color: {
                 if (smmManager.pulseRate > 0 && smmManager.pulseRate <= 40 || smmManager.pulseRate >= 150) return "#ef4444";
 

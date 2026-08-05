@@ -194,13 +194,13 @@ Window {
                 }
                 Text{
                     text: "SpO2: %" + model.spo2 //veritabanından gelen spo2
-                    color: dbWindow.getSpo2Color(model.spo2 !== undefined ? model.spo2 : "--")
+                    color: dbWindow.getSpo2Color(model.spo2 !== undefined ? model.spo2 : 0)
                     font.pixelSize: 14
                     font.bold: true
                 }
                 Text {
                     text:"Pulse: " + model.pulseRate + " bpm" //veritabanından gelen pulse rate
-                    color: dbWindow.getPulseColor(model.pulseRate !== undefined ? model.pulseRate : "--")
+                    color: dbWindow.getPulseColor(model.pulseRate !== undefined ? model.pulseRate : 0)
                     font.pixelSize: 14
                     font.bold: true
                 }
@@ -458,7 +458,7 @@ Window {
                     onMovingChanged: { if (moving) { forceActiveFocus(); calendarPopup.activeTumbler = hourTumbler } }
                     Keys.onLeftPressed: dayTumbler.forceActiveFocus()
                     Keys.onRightPressed: minuteTumbler.forceActiveFocus()
-                    Keys.onUpPressed: currentIndex.Math.max(0, currentIndex - 1)
+                    Keys.onUpPressed: currentIndex = Math.max(0, currentIndex - 1)
                     Keys.onDownPressed: currentIndex = Math.min(count - 1, currentIndex + 1)
 
                     WheelHandler {

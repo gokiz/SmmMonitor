@@ -9,7 +9,7 @@
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
-
+#include <QtMultimedia/QSoundEffect>
 
 class SmmManager : public QObject
 {
@@ -224,6 +224,8 @@ private:
     AlarmPriority m_pulseAlarmPriority = AlarmPriority::Red;
 
     void logAlarm (const QString &paramType, int value, const QString &priority);
+
+    QSoundEffect *m_alarmSound;
 };
 
 #endif // SMMMANAGER_H

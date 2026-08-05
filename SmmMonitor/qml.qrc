@@ -4,5 +4,6 @@
         <file>DatabaseWindow.qml</file>
         <file>OptionsButton.qml</file>
         <file>AlarmLogsWindow.qml</file>
+        <file>sounds/freesound_community-steadyheartratemonitorloop1min-6274.wav</file>
     </qresource>
 </RCC>

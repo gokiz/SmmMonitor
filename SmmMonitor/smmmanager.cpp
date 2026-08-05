@@ -28,6 +28,13 @@ SmmManager::SmmManager(QObject *parent)
 
     initDatabase();
 
+    m_alarmSound = new QSoundEffect(this);
+
+    m_alarmSound->setSource(QUrl("qrc:/sounds/freesound_community-steadyheartratemonitorloop1min-6274.wav"));
+    m_alarmSound->setLoopCount(QSoundEffect::Infinite);
+
+    m_alarmSound->setVolume(1.0f);
+
 }
 SmmManager::~SmmManager()
 {
@@ -145,6 +152,11 @@ void SmmManager::disconnectPort() {
     m_saturation = 0;
     m_pulseRate = 0;
     m_waveform = 0;
+
+    if (m_alarmSound->isPlaying()) {
+        m_alarmSound->stop();
+    }
+
     emit saturationChanged(m_saturation);
     emit pulseRateChanged(m_pulseRate);
     emit waveformChanged(m_waveform);
@@ -206,6 +218,10 @@ void SmmManager::onWatchdogTimeout() {
         m_isSignalWeak = false;
         m_beepVoice = false;
         m_pulseSearch = false;
+
+        if (m_alarmSound->isPlaying()) {
+            m_alarmSound->stop();
+        }
 
         emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
         emit pulseRateChanged(m_pulseRate);
@@ -655,6 +671,7 @@ QSqlQueryModel *SmmManager::getAlarmLogsModel() {
     };
 
     QSqlQueryModel *model = new AlarmRoleModel();
+    model->setParent(this);
     model->setQuery("SELECT timestamp, parameter_type, value, priority FROM AlarmLogs ORDER BY id DESC");
 
     if (model->lastError().isValid()) {
@@ -791,6 +808,9 @@ void SmmManager::parseBuffer(){
                     m_isPulseAlarmActive = false;
                     emit isPulseAlarmActiveChanged();
                 }
+                if (m_alarmSound->isPlaying()) {
+                    m_alarmSound->stop();
+                }
 
                 m_waveform = 0;
                 emit waveformChanged(m_waveform);
@@ -823,6 +843,7 @@ void SmmManager::parseBuffer(){
                     emit isSpo2AlarmActiveChanged(m_isSpo2AlarmActive);
                 }
 
+
                 // --- 2. PULSE ALARM KONTROLÜ ---
                 bool currentPulseAlarmState = false;
                 if(m_pulseRate > 0) {
@@ -837,9 +858,20 @@ void SmmManager::parseBuffer(){
                     }
                 }
 
+
                 if(m_isPulseAlarmActive != currentPulseAlarmState) {
                     m_isPulseAlarmActive = currentPulseAlarmState;
                     emit isPulseAlarmActiveChanged();
+                }
+
+                if(m_isSpo2AlarmActive || m_isPulseAlarmActive) {
+                    if (m_alarmSound->status() == QSoundEffect::Ready && !m_alarmSound->isPlaying()) {
+                        m_alarmSound->play();
+                    }
+                } else {
+                    if(m_alarmSound->isPlaying()) {
+                        m_alarmSound->stop();
+                    }
                 }
 
                 // --- 3. NORMAL ÖLÇÜM GEÇMİŞİ KAYDI (2 saniyede bir) ---

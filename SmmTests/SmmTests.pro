@@ -2,7 +2,7 @@ CONFIG += warn_on qmltestcase
 
 TEMPLATE = app
 
-QT += testlib core gui quick serialport qmltest sql
+QT += testlib core gui quick serialport qmltest sql multimedia
 
 DEFINES += QUICK_TEST_SOURCE_DIR=\\\"$$PWD\\\"
 
