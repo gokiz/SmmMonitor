@@ -11,6 +11,7 @@ Rectangle {
     radius: 10
 
     signal openDatabase()
+    signal openAlarmLogsWindow()
 
     Text{
         text: "OPTIONS"
@@ -306,6 +307,33 @@ Rectangle {
                         }
                     }
                 }
+
+                Rectangle{
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: "#473c8b"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+
+
+                Text {
+                    text: "Alarm Log History"
+                    color: "#0ea5e9"
+                    font.bold: true
+                    font.pixelSize: 15
+                    Layout.alignment: Qt.AlignHCenter
+
+                    MouseArea{
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            root.openAlarmLogsWindow()
+                            optionsPopup.close()
+                        }
+                    }
+                }
+
                 Item{
                     Layout.fillHeight: true //menüyü yukarı yaslar
                 }

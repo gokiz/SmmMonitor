@@ -3,5 +3,6 @@
         <file>main.qml</file>
         <file>DatabaseWindow.qml</file>
         <file>OptionsButton.qml</file>
+        <file>AlarmLogsWindow.qml</file>
     </qresource>
 </RCC>

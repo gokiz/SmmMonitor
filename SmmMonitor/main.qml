@@ -163,6 +163,10 @@ Window {
         }
     }
 
+    AlarmLogsWindow {
+        id: alarmLogsWindow
+    }
+
     OptionsButton {
         id: optionsMenu
         anchors.top: parent.top
@@ -172,6 +176,9 @@ Window {
         //optionsButton.qml içinden gönderilen siyali yakala ve veritabanını aç
         onOpenDatabase: {
             dbWindow.show()
+        }
+        onOpenAlarmLogsWindow: {
+            alarmLogsWindow.show();
         }
     }
 

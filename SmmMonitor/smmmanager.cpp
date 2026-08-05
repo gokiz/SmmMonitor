@@ -229,7 +229,8 @@ void SmmManager::initDatabase(){
     QDir().mkpath(dataDir);
 
     QString dbPath = dataDir + "/SmmData.db";
-    db.setDatabaseName("SmmData.db");
+    // DÜZELTME: Doğrudan "SmmData.db" yerine dbPath değişkenini kullanmalıyız!
+    db.setDatabaseName(dbPath);
     qDebug() << "DB Path:" << dbPath;
 
     if(!db.open()){
@@ -243,7 +244,16 @@ void SmmManager::initDatabase(){
                           "spo2 INTEGER,"
                           "pulse_rate INTEGER)";
     if(!query.exec(createTable)){
-        qDebug() << "The table could not be opened: " << query.lastError().text();
+        qDebug() << "Measurements table error: " << query.lastError().text();
+    }
+
+    if(!query.exec("CREATE TABLE IF NOT EXISTS AlarmLogs ("
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    "timestamp TEXT, "
+                    "parameter_type TEXT, "
+                    "value INTEGER, "
+                    "priority TEXT)")) {
+        qDebug() << "AlarmLogs table error: " << query.lastError().text();
     }
 }
 
@@ -483,6 +493,25 @@ void SmmManager::parseIncomingData(const QByteArray &data) {
         m_patientMode = parsedMode;
         emit patientModeChanged(m_patientMode);
     }
+    //spo2 için dinamik limit ve log kontrolü
+    if(m_saturation > 0) {
+        if(m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit) {
+            QString priorityStr = "Red";
+            if(m_spo2AlarmPriority == AlarmPriority::Yellow) priorityStr = "Yellow";
+            else if(m_spo2AlarmPriority == AlarmPriority::Blue) priorityStr = "Blue";
+
+            logAlarm("SpO2", m_saturation, priorityStr);
+        }
+    }
+    if(m_pulseRate > 0) {
+        if(m_pulseRate < m_pulseLowerLimit || m_pulseRate > m_pulseUpperLimit) {
+            QString priorityStr = "Red";
+            if(m_pulseAlarmPriority == AlarmPriority::Yellow) priorityStr = "Yellow";
+            else if(m_pulseAlarmPriority == AlarmPriority::Blue) priorityStr = "Blue";
+
+            logAlarm("Pulse", m_pulseRate, priorityStr);
+        }
+    }
 }
 
 QByteArray SmmManager::updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode){
@@ -600,6 +629,72 @@ void SmmManager::setPulseAlarmPriority(AlarmPriority priority) {
     emit pulseAlarmPriorityChanged();
     qDebug() << "Pulse Alarm Priority has bee updated.";
 }
+
+QSqlQueryModel *SmmManager::getAlarmLogsModel() {
+    struct AlarmRoleModel : public QSqlQueryModel {
+        QHash<int,QByteArray> roleNames() const override {
+            QHash<int, QByteArray> roles;
+            roles[Qt::UserRole + 1] = "timestamp";
+            roles[Qt::UserRole + 2] = "parameter_type";
+            roles[Qt::UserRole + 3] = "value";
+            roles[Qt::UserRole + 4] = "priority";
+            return roles;
+        }
+        QVariant data(const QModelIndex &index, int role) const override {
+            if(!index.isValid()) return QVariant();
+            int column = -1;
+            switch (role) {
+            case Qt::UserRole + 1: column = 0; break;
+            case Qt::UserRole + 2: column = 1;break;
+            case Qt::UserRole + 3: column = 2; break;
+            case Qt::UserRole + 4: column = 3; break;
+            }
+            QModelIndex sourceIndex = this->index(index.row(), column);
+            return QSqlQueryModel::data(sourceIndex, Qt::DisplayRole);
+        }
+    };
+
+    QSqlQueryModel *model = new AlarmRoleModel();
+    model->setQuery("SELECT timestamp, parameter_type, value, priority FROM AlarmLogs ORDER BY id DESC");
+
+    if (model->lastError().isValid()) {
+        qDebug() << "Model Error:" << model->lastError().text();
+    }
+
+    return model;
+}
+
+
+
+void SmmManager::logAlarm(const QString &paramType, int value, const QString &priority) {
+    // SpO2 ve Pulse için ayrı ayrı zaman tutucular
+    static qint64 lastSpo2LogTime = 0;
+    static qint64 lastPulseLogTime = 0;
+    qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+
+    if (paramType == "SpO2") {
+        if (currentTime - lastSpo2LogTime < 2000) return;
+        lastSpo2LogTime = currentTime;
+    } else if (paramType == "Pulse") {
+        if (currentTime - lastPulseLogTime < 2000) return;
+        lastPulseLogTime = currentTime;
+    }
+
+    QSqlQuery query;
+    query.prepare("INSERT INTO AlarmLogs (timestamp, parameter_type, value, priority) "
+                  "VALUES (:timestamp, :parameter_type, :value, :priority)");
+
+    query.bindValue(":timestamp", QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss"));
+    query.bindValue(":parameter_type", paramType);
+    query.bindValue(":value", value);
+    query.bindValue(":priority", priority);
+
+    if(!query.exec()) {
+        qDebug() << "Alarm log could not be written:" << query.lastError().text();
+    } else {
+        qDebug() << "SUCCESS! Alarm saved to DB:" << paramType << value << priority;
+    }
+}
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
 
@@ -692,6 +787,10 @@ void SmmManager::parseBuffer(){
                     m_isSpo2AlarmActive = false;
                     emit isSpo2AlarmActiveChanged(m_isSpo2AlarmActive);
                 }
+                if(m_isPulseAlarmActive) {
+                    m_isPulseAlarmActive = false;
+                    emit isPulseAlarmActiveChanged();
+                }
 
                 m_waveform = 0;
                 emit waveformChanged(m_waveform);
@@ -702,47 +801,60 @@ void SmmManager::parseBuffer(){
 
                     emit saturationChanged(m_saturation);
                     emit pulseRateChanged(m_pulseRate);
+                }
 
-                    bool currentAlarmState = false;
-                    if(m_saturation > 0){
-                        if(m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit){
-                            currentAlarmState = true;
-                        }
-                    }
-                    if(m_isSpo2AlarmActive != currentAlarmState) {
-                        m_isSpo2AlarmActive = currentAlarmState;
-                        emit isSpo2AlarmActiveChanged(m_isSpo2AlarmActive);
-                    }
+                // --- 1. SpO2 ALARM KONTROLÜ (Sürekli kontrol eder, logAlarm 2 saniyede bir filtreler) ---
+                bool currentSpo2AlarmState = false;
+                if(m_saturation > 0) {
+                    if(m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit) {
+                        currentSpo2AlarmState = true;
 
-                    if(m_saturation > 0) {
-                        if(m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit) {
-                            qWarning() << "ALARM! SpO2 value is out of bounds:" << m_saturation;
-                        }
-                    }
+                        QString priorityStr = "Red";
+                        if(m_spo2AlarmPriority == AlarmPriority::Yellow) priorityStr = "Yellow";
+                        else if(m_spo2AlarmPriority == AlarmPriority::Blue) priorityStr = "Blue";
 
-                    bool currentPulseAlarmState = false;
-                    if(m_pulseRate > 0) {
-                        if(m_pulseRate < m_pulseLowerLimit || m_pulseRate > m_pulseUpperLimit) {
-                            currentPulseAlarmState = true;
-                        }
-                    }
-                    if(m_isPulseAlarmActive != currentPulseAlarmState) {
-                        m_isPulseAlarmActive = currentPulseAlarmState;
-                        emit isPulseAlarmActiveChanged();
-                    }
-
-
-                    // 3. OPTİMİZASYON: Veritabanının UI'ı kilitlemesini önlemek için 2 saniyede BİR kaydet
-                    qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
-                    if (currentTime - m_lastDbSaveTime > 2000) {
-                        insertMeasurement(rawSpo2, rawPulseRate);
-                        m_lastDbSaveTime = currentTime;
+                        logAlarm("SpO2", m_saturation, priorityStr);
                     }
                 }
+
+                // Alarm durumu değiştiyse arayüze bildir (Kırmızı yanıp sönme vs.)
+                if(m_isSpo2AlarmActive != currentSpo2AlarmState) {
+                    m_isSpo2AlarmActive = currentSpo2AlarmState;
+                    emit isSpo2AlarmActiveChanged(m_isSpo2AlarmActive);
+                }
+
+                // --- 2. PULSE ALARM KONTROLÜ ---
+                bool currentPulseAlarmState = false;
+                if(m_pulseRate > 0) {
+                    if(m_pulseRate < m_pulseLowerLimit || m_pulseRate > m_pulseUpperLimit) {
+                        currentPulseAlarmState = true;
+
+                        QString priorityStr = "Red";
+                        if(m_pulseAlarmPriority == AlarmPriority::Yellow) priorityStr = "Yellow";
+                        else if(m_pulseAlarmPriority == AlarmPriority::Blue) priorityStr = "Blue";
+
+                        logAlarm("Pulse", m_pulseRate, priorityStr);
+                    }
+                }
+
+                if(m_isPulseAlarmActive != currentPulseAlarmState) {
+                    m_isPulseAlarmActive = currentPulseAlarmState;
+                    emit isPulseAlarmActiveChanged();
+                }
+
+                // --- 3. NORMAL ÖLÇÜM GEÇMİŞİ KAYDI (2 saniyede bir) ---
+                qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+                if (currentTime - m_lastDbSaveTime > 2000) {
+                    insertMeasurement(rawSpo2, rawPulseRate);
+                    m_lastDbSaveTime = currentTime;
+                }
+
                 m_waveform = rawWaveform;
                 emit waveformChanged(m_waveform);
             }
         }
+
+
         m_buffer.remove(0, totalPacketSize);
     }
 }

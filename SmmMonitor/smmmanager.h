@@ -117,6 +117,9 @@ public:
     Q_INVOKABLE void setPulseUpperLimit(int limit);
     Q_INVOKABLE void setPulseAlarmPriority(AlarmPriority priority);
 
+    Q_INVOKABLE QSqlQueryModel *getAlarmLogsModel();
+
+
 
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
 
@@ -219,6 +222,8 @@ private:
     bool m_isPulseAlarmActive = false;
 
     AlarmPriority m_pulseAlarmPriority = AlarmPriority::Red;
+
+    void logAlarm (const QString &paramType, int value, const QString &priority);
 };
 
 #endif // SMMMANAGER_H
