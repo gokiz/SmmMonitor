@@ -42,6 +42,7 @@ class SmmManager : public QObject
     Q_PROPERTY(bool isPulseAlarmActive READ isPulseAlarmActive NOTIFY isPulseAlarmActiveChanged )
     Q_PROPERTY(AlarmPriority pulseAlarmPriority READ pulseAlarmPriority WRITE setPulseAlarmPriority NOTIFY pulseAlarmPriorityChanged )
 
+    Q_PROPERTY(bool isAlarmMuted READ isAlarmMuted NOTIFY isAlarmMutedChanged)
 
 public:
     explicit SmmManager(QObject *parent = nullptr);
@@ -95,6 +96,8 @@ public:
     bool isPulseAlarmActive() const {return m_isPulseAlarmActive;}
     AlarmPriority pulseAlarmPriority() const {return m_pulseAlarmPriority;}
 
+    bool isAlarmMuted() const {return m_isAlarmMuted;}
+
 
     PatientMode patientMode() const {return m_patientMode; }
     AveragingSeconds averageSecond() const { return m_averageSecond;}
@@ -130,6 +133,7 @@ public:
 
     Q_INVOKABLE void playSoundEffect(SoundType type);
     Q_INVOKABLE void stopSoundEffect();
+    Q_INVOKABLE void muteAlarmForTwoMinutes();
 
 
 
@@ -167,7 +171,7 @@ signals:
     void pulseUpperLimitChanged();
     void isPulseAlarmActiveChanged();
     void pulseAlarmPriorityChanged();
-
+    void isAlarmMutedChanged(bool muted);
 
 
 private slots:
@@ -239,6 +243,10 @@ private:
 
     QMediaPlayer *m_soundPlayer;
     QAudioOutput *m_audioOutput;
+
+    QTimer *m_muteTimer;
+    bool m_isAlarmMuted = false;
+    void onMuteTimeout();
 };
 
 #endif // SMMMANAGER_H

@@ -36,6 +36,10 @@ SmmManager::SmmManager(QObject *parent)
     m_soundPlayer->setLoops(QMediaPlayer::Infinite);
     m_audioOutput->setVolume(1.0f);
 
+    m_muteTimer = new QTimer(this);
+    m_muteTimer->setSingleShot(true);
+    connect(m_muteTimer, &QTimer::timeout, this, &SmmManager::onMuteTimeout);
+
 }
 SmmManager::~SmmManager()
 {
@@ -740,6 +744,25 @@ void SmmManager::stopSoundEffect() {
         m_soundPlayer->stop();
     }
 }
+
+void SmmManager::muteAlarmForTwoMinutes() {
+    m_isAlarmMuted = true;
+    emit isAlarmMutedChanged(m_isAlarmMuted);
+
+    stopSoundEffect();
+
+    m_muteTimer->start(120000);
+    qDebug() << "Alarms are muted for 2 minutes.";
+}
+
+void SmmManager::onMuteTimeout() {
+    m_isAlarmMuted = false;
+    emit isAlarmMutedChanged(m_isAlarmMuted);
+
+    qDebug() << "Mute duration expired. Alarms are active again.";
+}
+
+
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
 
@@ -891,7 +914,11 @@ void SmmManager::parseBuffer(){
                 }
 
                 if(m_isSpo2AlarmActive || m_isPulseAlarmActive) {
-                    playSoundEffect(SoundType::Alarm);
+                    if(!m_isAlarmMuted){
+                        playSoundEffect(SoundType::Alarm);
+                    }else {
+                        stopSoundEffect();
+                    }
                 } else {
                     playSoundEffect(SoundType::Warning);
                 }

@@ -166,6 +166,33 @@ Window {
     AlarmLogsWindow {
         id: alarmLogsWindow
     }
+    Rectangle {
+        id: muteAlarmButton
+        anchors.top: parent.top
+        anchors.right: optionsMenu.left
+        anchors.margins: 15
+        height: 40
+        width:150
+        radius: 8
+        color: smmManager.isAlarmMuted ? "#f59e0b" : "#1e293b"
+        border.color: smmManager.isAlarmMuted ? "#d97706" : "#0ea5e9"
+        border.width: 1
+
+        Text {
+            anchors.centerIn: parent
+            text: smmManager.isAlarmMuted ? "🔇 Alarm Muted (2m)" : "🔊 Mute Alarms (2m)"
+            color: "#ffffff"
+            font.bold: true
+            font.pixelSize: 12
+        }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                smmManager.muteAlarmForTwoMinutes();
+            }
+        }
+    }
 
     OptionsButton {
         id: optionsMenu
