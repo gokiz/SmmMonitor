@@ -10,6 +10,8 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QtMultimedia/QSoundEffect>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 class SmmManager : public QObject
 {
@@ -66,6 +68,13 @@ public:
     };
     Q_ENUM(AlarmPriority);
 
+    enum class SoundType {
+        Alarm,
+        Warning,
+        Info
+    };
+    Q_ENUM(SoundType);
+
     int saturation() const { return m_saturation; }
     int pulseRate() const {return m_pulseRate; }
     bool isSignalWeak() const {return m_isSignalWeak; }
@@ -118,6 +127,9 @@ public:
     Q_INVOKABLE void setPulseAlarmPriority(AlarmPriority priority);
 
     Q_INVOKABLE QSqlQueryModel *getAlarmLogsModel();
+
+    Q_INVOKABLE void playSoundEffect(SoundType type);
+    Q_INVOKABLE void stopSoundEffect();
 
 
 
@@ -225,7 +237,8 @@ private:
 
     void logAlarm (const QString &paramType, int value, const QString &priority);
 
-    QSoundEffect *m_alarmSound;
+    QMediaPlayer *m_soundPlayer;
+    QAudioOutput *m_audioOutput;
 };
 
 #endif // SMMMANAGER_H

@@ -28,12 +28,13 @@ SmmManager::SmmManager(QObject *parent)
 
     initDatabase();
 
-    m_alarmSound = new QSoundEffect(this);
+    m_soundPlayer = new QMediaPlayer(this);
+    m_audioOutput = new QAudioOutput(this);
+    m_soundPlayer->setAudioOutput(m_audioOutput);
 
-    m_alarmSound->setSource(QUrl("qrc:/sounds/freesound_community-steadyheartratemonitorloop1min-6274.wav"));
-    m_alarmSound->setLoopCount(QSoundEffect::Infinite);
-
-    m_alarmSound->setVolume(1.0f);
+    m_soundPlayer->setSource(QUrl("qrc:/sounds2/alarmSound2.wav"));
+    m_soundPlayer->setLoops(QMediaPlayer::Infinite);
+    m_audioOutput->setVolume(1.0f);
 
 }
 SmmManager::~SmmManager()
@@ -153,9 +154,7 @@ void SmmManager::disconnectPort() {
     m_pulseRate = 0;
     m_waveform = 0;
 
-    if (m_alarmSound->isPlaying()) {
-        m_alarmSound->stop();
-    }
+    stopSoundEffect();
 
     emit saturationChanged(m_saturation);
     emit pulseRateChanged(m_pulseRate);
@@ -219,9 +218,7 @@ void SmmManager::onWatchdogTimeout() {
         m_beepVoice = false;
         m_pulseSearch = false;
 
-        if (m_alarmSound->isPlaying()) {
-            m_alarmSound->stop();
-        }
+        stopSoundEffect();
 
         emit saturationChanged(m_saturation); // Arayüzü "--" durumuna açık
         emit pulseRateChanged(m_pulseRate);
@@ -712,6 +709,37 @@ void SmmManager::logAlarm(const QString &paramType, int value, const QString &pr
         qDebug() << "SUCCESS! Alarm saved to DB:" << paramType << value << priority;
     }
 }
+
+void SmmManager::playSoundEffect(SoundType type) {
+    QString soundPath;
+
+    switch(type) {
+    case SoundType::Alarm :
+        soundPath = "qrc:/sounds2/alarmSound2.wav";
+        m_soundPlayer->setLoops(QMediaPlayer::Infinite);
+        break;
+    case SoundType::Warning:
+        soundPath = "qrc:/sounds2/warningSound.wav";
+        m_soundPlayer->setLoops(1);
+        break;
+    case SoundType::Info :
+        soundPath = "qrc:/sounds2/infoSound.wav";
+        m_soundPlayer->setLoops(1);
+        break;
+    }
+    if(m_soundPlayer->source() != QUrl(soundPath)) {
+        m_soundPlayer->setSource(QUrl(soundPath));
+    }
+    if(!m_soundPlayer->isPlaying()) {
+        m_soundPlayer->play();
+    }
+}
+
+void SmmManager::stopSoundEffect() {
+    if(m_soundPlayer->isPlaying()) {
+        m_soundPlayer->stop();
+    }
+}
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
 
@@ -808,9 +836,7 @@ void SmmManager::parseBuffer(){
                     m_isPulseAlarmActive = false;
                     emit isPulseAlarmActiveChanged();
                 }
-                if (m_alarmSound->isPlaying()) {
-                    m_alarmSound->stop();
-                }
+                stopSoundEffect();
 
                 m_waveform = 0;
                 emit waveformChanged(m_waveform);
@@ -865,13 +891,9 @@ void SmmManager::parseBuffer(){
                 }
 
                 if(m_isSpo2AlarmActive || m_isPulseAlarmActive) {
-                    if (m_alarmSound->status() == QSoundEffect::Ready && !m_alarmSound->isPlaying()) {
-                        m_alarmSound->play();
-                    }
+                    playSoundEffect(SoundType::Alarm);
                 } else {
-                    if(m_alarmSound->isPlaying()) {
-                        m_alarmSound->stop();
-                    }
+                    playSoundEffect(SoundType::Warning);
                 }
 
                 // --- 3. NORMAL ÖLÇÜM GEÇMİŞİ KAYDI (2 saniyede bir) ---
