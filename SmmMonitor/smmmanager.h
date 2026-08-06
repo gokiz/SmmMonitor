@@ -141,6 +141,9 @@ public:
 
     Q_INVOKABLE void setWaveformSpeed(int speed);
 
+    Q_INVOKABLE void exportDataToPdf();
+    Q_INVOKABLE void exportDataToExcel();
+
 
 
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);

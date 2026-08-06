@@ -12,6 +12,8 @@ Rectangle {
 
     signal openDatabase()
     signal openAlarmLogsWindow()
+    signal exportToPdf()
+    signal exportToExcel()
 
     Text{
         text: "OPTIONS"
@@ -30,7 +32,7 @@ Rectangle {
     Popup {
         id:optionsPopup
         width: 270
-        height: 370
+        height: 400
         x: root.width - width
         y: root.height + 10
 
@@ -357,6 +359,53 @@ Rectangle {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             root.openAlarmLogsWindow()
+                            optionsPopup.close()
+                        }
+                    }
+                }
+                Rectangle{
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: "#473c8b"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+                Text {
+                    text: "📄 PDF: Alarm Records"
+                    color: "#0ea5e9"
+                    font.bold: true
+                    font.pixelSize: 15
+                    Layout.alignment: Qt.AlignHCenter
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            root.exportToPdf()
+                            optionsPopup.close()
+                        }
+                    }
+                }
+                Rectangle{
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: "#473c8b"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+
+                Text {
+                    text: "📊 Excel: All Measurement Records"
+                    color: "#0ea5e9"
+                    font.bold: true
+                    font.pixelSize: 15
+                    Layout.alignment: Qt.AlignHCenter
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            root.exportToExcel()
                             optionsPopup.close()
                         }
                     }

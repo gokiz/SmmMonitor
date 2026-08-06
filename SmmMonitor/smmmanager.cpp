@@ -5,6 +5,13 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QSerialPortInfo>
+#include <QPdfWriter>
+#include <QPageSize>
+#include <QPainter>
+#include <QFile>
+#include <QTextStream>
+#include <QFont>
+
 
 SmmManager::SmmManager(QObject *parent)
     : QObject{parent}, m_serialPort(new QSerialPort(this)),m_saturation(0), m_pulseRate(0), m_isSignalWeak(false),m_beepVoice(false),m_averageSecond(AveragingSeconds::sec4)
@@ -769,6 +776,112 @@ void SmmManager::setWaveformSpeed(int speed) {
     emit waveformSpeedChanged(m_waveformSpeed);
 
     qDebug() << "Waveform speed updated to:" << m_waveformSpeed << " m/s";
+}
+
+void SmmManager::exportDataToPdf() {
+    QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    QString filePath = desktopPath + "/SmmMonitor_Alarm_Report.pdf";
+
+    QPdfWriter pdfWriter(filePath);
+    pdfWriter.setPageSize(QPageSize::A4);
+    pdfWriter.setResolution(300);
+
+    QPainter painter(&pdfWriter);
+    if (painter.isActive()) {
+        int pageWidth = pdfWriter.width();
+
+        // 1. Ana Başlık (Sol Üst - Boyut ve konum ayarlandı)
+        QFont titleFont = painter.font();
+        titleFont.setPointSize(14);
+        titleFont.setBold(true);
+        painter.setFont(titleFont);
+        painter.drawText(200, 300, "SMM Monitor - Alarm Logs Report");
+
+        // 2. Otomatik Güncel Tarih (Sağ Üst Köşe - Çakışmayacak güvenli koordinat)
+        QFont dateFont = painter.font();
+        dateFont.setPointSize(10);
+        dateFont.setBold(false);
+        painter.setFont(dateFont);
+
+        QString currentDate = "Report Date: " + QDateTime::currentDateTime().toString("dd.MM.yyyy HH:mm");
+        painter.drawText(pageWidth - 750, 300, currentDate);
+
+        // Ayırıcı Çizgi
+        painter.drawLine(200, 400, pageWidth - 200, 400);
+
+        // 3. Alt Başlık ve Açıklama
+        QFont subFont = painter.font();
+        subFont.setPointSize(11);
+        subFont.setBold(true);
+        painter.setFont(subFont);
+        painter.drawText(200, 480, "Alarm Geçmişi Kayıtları (AlarmLogs)");
+
+        int startY = 550;
+        subFont.setPointSize(10);
+        painter.setFont(subFont);
+        painter.drawText(200, startY, "Zaman");
+        painter.drawText(900, startY, "Parametre");
+        painter.drawText(1400, startY, "Değer");
+        painter.drawText(1800, startY, "Öncelik (Priority)");
+
+        painter.drawLine(200, startY + 40, pageWidth - 200, startY + 40);
+
+        // Veritabanından AlarmLogs verilerini çekiyoruz (Hem SpO2 hem Pulse dahil)
+        QSqlQuery alarmQuery("SELECT timestamp, parameter_type, value, priority FROM AlarmLogs ORDER BY id DESC LIMIT 20");
+        int rowY = startY + 100;
+
+        QFont rowFont = painter.font();
+        rowFont.setPointSize(9);
+        rowFont.setBold(false);
+        painter.setFont(rowFont);
+
+        while (alarmQuery.next() && rowY < 3200) {
+            QString time = alarmQuery.value(0).toString();
+            QString param = alarmQuery.value(1).toString();
+            int val = alarmQuery.value(2).toInt();
+            QString priority = alarmQuery.value(3).toString();
+
+            painter.drawText(200, rowY, time);
+            painter.drawText(900, rowY, param);
+            painter.drawText(1400, rowY, QString::number(val));
+            painter.drawText(1800, rowY, priority);
+
+            rowY += 80;
+        }
+
+        painter.end();
+        qDebug() << "Alarm PDF raporu başarıyla oluşturuldu:" << filePath;
+    }
+}
+
+void SmmManager::exportDataToExcel() {
+    QString desktopPath = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+    QString filePath = desktopPath + "/SmmMonitor_Measurements.csv";
+
+    QFile file(filePath);
+    if(file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+
+        // Türkçe Excel karakter bozulmasını önlemek için UTF-8 BOM
+        out.setEncoding(QStringConverter::Utf8);
+        out << "\xEF\xBB\xBF";
+
+        // Excel sütun başlıkları (Noktalı virgül kullanıyoruz)
+        out << "Zaman;SpO2 (%);Pulse Rate (bpm)\n";
+
+        // Veritabanından measurements tablosundaki verileri çekiyoruz
+        QSqlQuery query("SELECT timestamp, spo2, pulse_rate FROM measurements ORDER BY id DESC");
+        while (query.next()) {
+            QString timestamp = query.value(0).toString();
+            int spo2 = query.value(1).toInt();
+            int pulse = query.value(2).toInt();
+
+            out << timestamp << ";" << spo2 << ";" << pulse << "\n";
+        }
+
+        file.close();
+        qDebug() << "Excel (CSV) dosyası Masaüstüne kaydedildi:" << filePath;
+    }
 }
 
 

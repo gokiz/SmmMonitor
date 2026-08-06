@@ -213,6 +213,14 @@ Window {
         onOpenAlarmLogsWindow: {
             alarmLogsWindow.show();
         }
+        onExportToPdf: {
+            console.log("PDF dışarı aktarma tetiklendi.");
+            smmManager.exportDataToPdf();
+        }
+        onExportToExcel: {
+            console.log("Excel dışarı aktarma tetiklendi.");
+            smmManager.exportDataToExcel();
+        }
     }
 
     ColumnLayout {
