@@ -127,7 +127,7 @@ Window {
             }
         }
         Rectangle {
-            width: 170
+            width: 180
             height: 80
             color: "#1e293b"
             border.color: "#0ea5e9"
@@ -155,6 +155,12 @@ Window {
                 Text {
                     text: "Avg. Seconds: " + (smmManager.averageSecond === 4 ? "4 Sec" :
                                                                                (smmManager.averageSecond === 8 ? "8 Sec" : "16 Sec"))
+                    color: "#ffffff"
+                    font.bold: true
+                    font.pixelSize: 12
+                }
+                Text {
+                    text: "Waveform Speed: " + smmManager.waveformSpeed + "m/s"
                     color: "#ffffff"
                     font.bold: true
                     font.pixelSize: 12

@@ -29,8 +29,8 @@ Rectangle {
     }
     Popup {
         id:optionsPopup
-        width: 260
-        height: 310
+        width: 270
+        height: 370
         x: root.width - width
         y: root.height + 10
 
@@ -77,6 +77,7 @@ Rectangle {
                             freqRow.visible = !freqRow.visible
                             patients.visible = !patients.visible
                             avgseconds.visible = !avgseconds.visible
+                            waveformSppedRow.visible = !waveformSppedRow.visible
                         }
                     }
                 }
@@ -159,6 +160,33 @@ Rectangle {
                                 smmManager.setAverageSecond(8);
                             }else if(index === 2) {
                                 smmManager.setAverageSecond(16);
+                            }
+                        }
+                    }
+                }
+                //waveform hız ayarı
+                RowLayout {
+                    id: waveformSppedRow
+                    visible: false
+                    Layout.alignment: Qt.AlignLeft
+                    spacing: 10
+
+                    Text {
+                        text: "Waveform Speed: "
+                        color: "#473c8b"
+                        font.bold: true
+                    }
+                    ComboBox {
+                        id: waveformSpeedComboBox
+                        model: ["25 m/s", "500 m/s"]
+                        Layout.preferredWidth: 105
+                        currentIndex: smmManager.waveformSpeed === 500 ? 1 : 0
+
+                        onActivated:  function(index) {
+                            if(index === 0) {
+                                smmManager.setWaveformSpeed(25);
+                            } else {
+                                smmManager.setWaveformSpeed(500);
                             }
                         }
                     }

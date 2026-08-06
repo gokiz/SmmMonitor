@@ -44,6 +44,8 @@ class SmmManager : public QObject
 
     Q_PROPERTY(bool isAlarmMuted READ isAlarmMuted NOTIFY isAlarmMutedChanged)
 
+    Q_PROPERTY(int waveformSpeed READ waveformSpeed WRITE setWaveformSpeed NOTIFY waveformSpeedChanged )
+
 public:
     explicit SmmManager(QObject *parent = nullptr);
     ~SmmManager();
@@ -98,6 +100,8 @@ public:
 
     bool isAlarmMuted() const {return m_isAlarmMuted;}
 
+    int waveformSpeed() const {return m_waveformSpeed;}
+
 
     PatientMode patientMode() const {return m_patientMode; }
     AveragingSeconds averageSecond() const { return m_averageSecond;}
@@ -134,6 +138,8 @@ public:
     Q_INVOKABLE void playSoundEffect(SoundType type);
     Q_INVOKABLE void stopSoundEffect();
     Q_INVOKABLE void muteAlarmForTwoMinutes();
+
+    Q_INVOKABLE void setWaveformSpeed(int speed);
 
 
 
@@ -172,6 +178,7 @@ signals:
     void isPulseAlarmActiveChanged();
     void pulseAlarmPriorityChanged();
     void isAlarmMutedChanged(bool muted);
+    void waveformSpeedChanged(int newSpeed);
 
 
 private slots:
@@ -247,6 +254,8 @@ private:
     QTimer *m_muteTimer;
     bool m_isAlarmMuted = false;
     void onMuteTimeout();
+
+    int m_waveformSpeed = 25;
 };
 
 #endif // SMMMANAGER_H

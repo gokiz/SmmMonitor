@@ -762,6 +762,15 @@ void SmmManager::onMuteTimeout() {
     qDebug() << "Mute duration expired. Alarms are active again.";
 }
 
+void SmmManager::setWaveformSpeed(int speed) {
+    if(speed != 25 && speed != 500) return;
+    if(m_waveformSpeed == speed) return;
+    m_waveformSpeed = speed;
+    emit waveformSpeedChanged(m_waveformSpeed);
+
+    qDebug() << "Waveform speed updated to:" << m_waveformSpeed << " m/s";
+}
+
 
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15
