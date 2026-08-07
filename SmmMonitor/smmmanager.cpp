@@ -883,7 +883,13 @@ void SmmManager::exportDataToExcel() {
         qDebug() << "Excel (CSV) dosyası Masaüstüne kaydedildi:" << filePath;
     }
 }
+void SmmManager::injectTestData(int spo2, int pulse) {
+    m_saturation = spo2;
+    m_pulseRate = pulse;
 
+    emit saturationChanged(m_saturation);
+    emit pulseRateChanged(m_pulseRate);
+}
 
 void SmmManager::parseBuffer(){
     const quint8 BIOLIGHT_CODE = 21; //0x15

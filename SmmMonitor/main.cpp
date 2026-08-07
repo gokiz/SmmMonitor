@@ -1,12 +1,14 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QDebug> // Loglama yapabilmek için eklendi
 #include "smmmanager.h"
 #include "smmsimulator.h"
 #include "waveformplotter.h"
 
 int main(int argc, char *argv[]){
     QGuiApplication app(argc, argv);
+
     SmmManager smmManager;
     SmmSimulator smmSimulator;
 
@@ -14,15 +16,12 @@ int main(int argc, char *argv[]){
     qmlRegisterUncreatableType<SmmManager>("Backend", 1, 0, "SmmManager", "SmmManager nesnesi QML'den olusturulamaz!");
 
 
-
-    QObject::connect(&smmSimulator, &SmmSimulator::mockDataReady,
-                     &smmManager, &SmmManager::injectTestData);
-
+    QObject::connect(&smmSimulator, SIGNAL(dataChanged(int,int)),
+                     &smmManager, SLOT(injectTestData(int,int)));
 
     QQmlApplicationEngine engine;
 
-
-    //C++ sınıfı QML tarafına 'smmManager' olarak kaydediliyor
+    // C++ sınıfları QML tarafına 'context property' olarak kaydediliyor
     engine.rootContext()->setContextProperty("smmManager", &smmManager);
     engine.rootContext()->setContextProperty("smmSimulator", &smmSimulator);
 
@@ -34,11 +33,9 @@ int main(int argc, char *argv[]){
                      }, Qt::QueuedConnection);
     engine.load(url);
 
-    smmManager.connectToModule("COM5"); //Modülün adı bilgisayar bağlantısına göre değişir
-    //modülü aktifleştir
+
+    smmManager.connectToModule("COM5");
     smmManager.initializeBiolightModule();
-
-
 
     return app.exec();
 }

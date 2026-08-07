@@ -149,10 +149,7 @@ public:
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
 
 public slots:
-    void injectTestData(const QByteArray &data) {
-        m_buffer.append(data);
-        parseBuffer();
-    }
+    void injectTestData(int spo2, int pulseRate);
     void setSimulationMode(bool isSimulating) {
         m_isSimulationMode = isSimulating;
     }
@@ -175,7 +172,7 @@ signals:
     void spo2LowerLimitChanged();
     void spo2UpperLimitChanged();
     void isSpo2AlarmActiveChanged(bool active);
-    void spo2AlarmPriorityChanged(AlarmPriority priority);
+    void spo2AlarmPriorityChanged(SmmManager::AlarmPriority priority);
     void pulseLowerLimitChanged();
     void pulseUpperLimitChanged();
     void isPulseAlarmActiveChanged();

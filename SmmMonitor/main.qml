@@ -15,6 +15,7 @@ Window {
 
     property bool isMeasuringSpo2: false
     property bool isMeasuringPulse: false
+    property bool isDemoActive: false
     Component.onCompleted: {
         console.log("averageSecond:", smmManager.averageSecond,
                     "sec4:", SmmManager.sec4,
@@ -220,6 +221,15 @@ Window {
         onExportToExcel: {
             console.log("Excel dışarı aktarma tetiklendi.");
             smmManager.exportDataToExcel();
+        }
+        onToggleDemoMode: {
+            if(!isDemoActive) {
+                smmSimulator.startDemo();
+                isDemoActive = true;
+            } else {
+                smmSimulator.stopDemo();
+                isDemoActive = false;
+            }
         }
     }
 

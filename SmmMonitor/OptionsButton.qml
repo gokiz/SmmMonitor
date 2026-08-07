@@ -14,6 +14,7 @@ Rectangle {
     signal openAlarmLogsWindow()
     signal exportToPdf()
     signal exportToExcel()
+    signal toggleDemoMode()
 
     Text{
         text: "OPTIONS"
@@ -153,7 +154,7 @@ Rectangle {
                         model: ["4 Seconds", "8 Seconds", "16 seconds"]
                         Layout.preferredWidth: 100
                         currentIndex: smmManager.averageSecond === 4 ? 0 :
-                                                                      (smmManager.averageSecond === 8 ? 1 : 2)
+                                                                       (smmManager.averageSecond === 8 ? 1 : 2)
 
                         onActivated: function(index) {
                             if(index === 0){
@@ -216,81 +217,6 @@ Rectangle {
                         onClicked: {
                             root.openDatabase()
                             optionsPopup.close()
-                        }
-                    }
-                }
-                Rectangle{
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 1
-                    color: "#473c8b"
-                    Layout.topMargin: 5
-                    Layout.bottomMargin: 5
-                }
-                //TEST MENUSU
-
-                Rectangle{
-                    id:testMenuBtn
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.topMargin: 5
-                    width: 120
-                    height: 30
-                    color: "transparent"
-                    border.color: "#ef4444"
-                    border.width: 1
-                    radius: 5
-
-                    Text{
-                        text:"Test Menüsü ▼"
-                        color: "#ef4444"
-                        anchors.centerIn: parent
-                        font.pixelSize: 11
-                        font.bold: true
-                    }
-                    MouseArea{
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked:  {
-                            testDropdown.open()
-                        }
-                    }
-                    Menu {
-                        id:testDropdown
-                        y: 35
-
-                        MenuItem {
-                            text: "▶ Otomatik Simülasyon (2 sn)"
-                            onClicked: {
-                                smmManager.setSimulationMode(true)
-                                smmSimulator.startSimulation()
-                            }
-                        }
-                        MenuItem {
-                            text: "⏹ Otomatik Simülasyonu Durdur"
-                            onClicked: {
-                                smmSimulator.stopSimulation()
-                                smmManager.setSimulationMode(false)
-                            }
-                        }
-                        MenuSeparator {} //araya imce çizgi çeker
-                        MenuItem {
-                            text: "Manuel: Normal Değerler"
-                            onClicked: smmSimulator.forceState(0)
-                        }
-                        MenuItem {
-                            text: "Manuel: Kritik Değerler"
-                            onClicked: smmSimulator.forceState(1)
-                        }
-                        MenuItem {
-                            text: "Manuel: Zayıf Sinyal"
-                            onClicked: smmSimulator.forceState(2)
-                        }
-                        MenuItem {
-                            text: "Manuel: Sensör Koptu"
-                            onClicked: smmSimulator.forceState(3)
-                        }
-                        MenuItem{
-                            text: "Manuel: Nabız Aranıyor"
-                            onClicked: smmSimulator.forceState(4)
                         }
                     }
                 }
@@ -406,6 +332,32 @@ Rectangle {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             root.exportToExcel()
+                            optionsPopup.close()
+                        }
+                    }
+                }
+                Rectangle{
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 1
+                    color: "#473c8b"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+
+                Text {
+                    id: demoTextItem
+                    text: root.isDemoActive ? "Stop Demo Mode" : "Start Demo Mode"
+
+                    color: root.isDemoActive ? "#ef4444" : "#0ea5e9"
+                    font.bold: true
+                    font.pixelSize: 15
+                    Layout.alignment: Qt.AlignHCenter
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            root.toggleDemoMode()
                             optionsPopup.close()
                         }
                     }

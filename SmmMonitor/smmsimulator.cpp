@@ -1,99 +1,31 @@
 #include <QDebug>
 #include "smmsimulator.h"
 
-SmmSimulator::SmmSimulator(QObject *parent) : QObject(parent), m_simState(0), m_currentSpo2(98), m_currentPulse(75),m_isManuelMode(false)
-{
-    m_simTimer = new QTimer(this);
-    connect(m_simTimer, &QTimer::timeout, this, &SmmSimulator::simulateNextState);
+SmmSimulator::SmmSimulator(QObject *parent) : QObject(parent), m_spo2(98), m_pulseRate(75) {
+    m_timer = new QTimer(this);
+    connect(m_timer, &QTimer::timeout, this, &SmmSimulator::generateMockData);
 
 }
-void SmmSimulator::startSimulation(){
-    m_isManuelMode = false;
-    m_simState = 0;
-    m_simTimer->start(2000); //her 2 saniyede bir ekran guncellenecek
-    qDebug() << "Görsel simülasyon başlıyor";
 
-}
-void SmmSimulator::stopSimulation(){
-    m_simTimer->stop();
-    qDebug() << "Görsel simülasyon durduruldu";
-}
-quint8 SmmSimulator::calcChecksum(quint8 len, quint8 code, const QByteArray &data){
-    quint32 sum = len + code;
-    for (char b : data) sum += static_cast<quint8>(b);
-    return static_cast<quint8>(sum & 0xFF);
-}
-void SmmSimulator::forceState(int stateIndex){
-    if(stateIndex >= 0 && stateIndex <= 4) {
-        m_isManuelMode = true;
-        m_simState = stateIndex;
-        if(!m_simTimer->isActive()){
-            m_simTimer->stop();
-        }
-        simulateNextState();
-
-    }
+int SmmSimulator::getSpo2() const {
+    return m_spo2;
 }
 
-void SmmSimulator::simulateNextState(){
-    quint8 data0 = 0x00;
+int SmmSimulator::getPulseRate() const {
+    return m_pulseRate;
+}
 
-    switch (m_simState) {
-    case 0:
-        qDebug() << "[SIMULASYON]: Normal Değerler";
-        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(95,101));
-        m_currentPulse= static_cast<quint8>(QRandomGenerator::global()->bounded(60,91));
-        break;
-    case 1:
-        qDebug() << "[SIMULASYON]: Kritik Oksijen ve Nabız";
-        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(70,90));
-        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(110,151));
-        break;
-    case 2:
-        qDebug() << "[SIMULASYON]: Zayıf Sinyal Uyarısı";
-        m_currentSpo2 = static_cast<quint8>(QRandomGenerator::global()->bounded(80,95));
-        m_currentPulse = static_cast<quint8>(QRandomGenerator::global()->bounded(40,120));
-        data0 |= 0x10;
-        break;
-    case 3:
-        qDebug() << "[SİMÜLASYON]: Sensör Çıkarıldı";
-        m_currentSpo2 = 0;
-        m_currentPulse = 0;
-        data0 |= 0x40;
-        break;
-    case 4: // Nabız Aranıyor (Eksik olan durum eklendi)
-        qDebug() << "[SİMÜLASYON]: Nabız Aranıyor";
-        m_currentSpo2 = 0;
-        m_currentPulse = 0;
-        data0 |= 0x80; // Pulse Search biti aktif edildi
-        break;
-    }
+void SmmSimulator::generateMockData() {
+    m_spo2 = 95 + QRandomGenerator::global()->bounded(5);
+    m_pulseRate = 75 + QRandomGenerator::global()->bounded(15);
 
-    const quint8 len = 10;
-    const quint8 code = 21;
+    emit dataChanged(m_spo2, m_pulseRate);
+}
 
-    QByteArray dataPayload;
-    dataPayload.append(static_cast<char>(data0));
-    dataPayload.append(static_cast<char>(0x00));
-    dataPayload.append(static_cast<char>(0x00));
-    dataPayload.append(static_cast<char>(m_currentSpo2));
-    dataPayload.append(static_cast<char>(0x00));
-    dataPayload.append(static_cast<char>(m_currentPulse));
-    dataPayload.append(static_cast<char>(0x00));
-    dataPayload.append(static_cast<char>(0x00));
-    dataPayload.append(static_cast<char>(0x00));
+void SmmSimulator::startDemo() {
+    m_timer->start(1000);
+}
 
-    QByteArray fullPacket;
-    fullPacket.append(static_cast<char>(0xAA));
-    fullPacket.append(static_cast<char>(0x55));
-    fullPacket.append(static_cast<char>(len));
-    fullPacket.append(static_cast<char>(code));
-    fullPacket.append(dataPayload);
-    fullPacket.append(static_cast<char>(calcChecksum(len, code, dataPayload)));
-
-    emit mockDataReady(fullPacket);
-
-    if (!m_isManuelMode) {
-        m_simState = (m_simState + 1) % 5;
-    }
+void SmmSimulator::stopDemo() {
+    m_timer->stop();
 }

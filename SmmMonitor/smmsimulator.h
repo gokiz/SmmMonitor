@@ -8,33 +8,29 @@
 
 class SmmSimulator : public QObject {
     Q_OBJECT
+    Q_PROPERTY(int spo2 READ getSpo2 NOTIFY dataChanged)
+    Q_PROPERTY(int pulseRate READ getPulseRate NOTIFY dataChanged)
 
 public:
     explicit SmmSimulator(QObject *parent = nullptr);
+    int getSpo2() const;
+    int getPulseRate() const;
 
-    //qmlde butona basip baslatıp durudurabilmek icin
-    Q_INVOKABLE void startSimulation();
-    Q_INVOKABLE void stopSimulation();
-    Q_INVOKABLE void forceState(int stateIndex);
+    Q_INVOKABLE void startDemo();
+    Q_INVOKABLE void stopDemo();
 
 signals:
+    void dataChanged(int spo2, int pulseRate);
 
-    //simulator sahte paketi hazirlayinca bu sinyalle sisteme gonderilecek
-    void mockDataReady(const QByteArray &data);
+
 
 private slots:
-    void simulateNextState(); //QTimer tetiklendiginde calisacak
+    void generateMockData();
 
 private:
-    QTimer *m_simTimer;
-    int m_simState;
-    quint8 m_currentSpo2;
-    quint8 m_currentPulse;
-
-    bool m_isManuelMode;
-
-    static quint8 calcChecksum(quint8 len, quint8 code, const QByteArray &data);
-
+    int m_spo2;
+    int m_pulseRate;
+    QTimer *m_timer;
 
 };
 
