@@ -13,6 +13,7 @@ public:
 
     //qmlde yeni veri geldiğinde çağıralacak fonksiyon
     Q_INVOKABLE void addPoint(int value);
+    Q_INVOKABLE void clear();
 
 private:
     QList<int>m_points;

@@ -16,8 +16,8 @@ int main(int argc, char *argv[]){
     qmlRegisterUncreatableType<SmmManager>("Backend", 1, 0, "SmmManager", "SmmManager nesnesi QML'den olusturulamaz!");
 
 
-    QObject::connect(&smmSimulator, SIGNAL(dataChanged(int,int)),
-                     &smmManager, SLOT(injectTestData(int,int)));
+    QObject::connect(&smmSimulator, &SmmSimulator::dataChanged,
+                    &smmManager, &SmmManager::injectTestData);
 
     QQmlApplicationEngine engine;
 

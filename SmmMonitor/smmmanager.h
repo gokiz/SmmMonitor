@@ -149,7 +149,7 @@ public:
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
 
 public slots:
-    void injectTestData(int spo2, int pulseRate);
+    void injectTestData(int spo2, int pulseRate, bool isSignalWeak = false, bool isPulseSearching = false);
     void setSimulationMode(bool isSimulating) {
         m_isSimulationMode = isSimulating;
     }

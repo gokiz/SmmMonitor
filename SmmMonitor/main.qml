@@ -24,6 +24,14 @@ Window {
         console.log("Adult:", SmmManager.Adult, "Newborn:", SmmManager.Newborn, "Pediatric:", SmmManager.Pediatric)
     }
 
+    function stopDemoMode() {
+        smmSimulator.stopDemo();
+        smmManager.disconnectPort();
+        isDemoActive = false;
+
+        wavePlotter.clear();
+    }
+
 
     //değerlere göre renk döndüren yardımcı fonksiyon
     function getSpo2Color(val){
@@ -173,6 +181,35 @@ Window {
     AlarmLogsWindow {
         id: alarmLogsWindow
     }
+
+    Rectangle {
+        id: stopDemoButton
+        anchors.top: parent.top
+        anchors.right:muteAlarmButton.left
+        height: 40
+        width: 110
+        radius : 8
+        color: "#1e293b"
+        border.color: "#ef4444"
+        border.width: 1
+        visible: isDemoActive
+
+        Text {
+            anchors.centerIn: parent
+            text: "Stop Demo"
+            color: "#ef4444"
+            font.bold: true
+            font.pixelSize: 12
+        }
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked:  {
+                stopDemoMode();
+            }
+        }
+    }
+
     Rectangle {
         id: muteAlarmButton
         anchors.top: parent.top
@@ -227,8 +264,7 @@ Window {
                 smmSimulator.startDemo();
                 isDemoActive = true;
             } else {
-                smmSimulator.stopDemo();
-                isDemoActive = false;
+                stopDemoMode();
             }
         }
     }
@@ -546,6 +582,7 @@ Window {
             if(!connected){
                 isMeasuringSpo2 = false;
                 isMeasuringPulse = false;
+                wavePlotter.clear();
             }
         }
     }

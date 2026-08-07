@@ -11,6 +11,39 @@
 #include <QFile>
 #include <QTextStream>
 #include <QFont>
+#include <cmath>
+
+namespace {
+int generateRealisticPpgSample(double phase) {
+    const double baseline = 18.0;
+    const double amplitude = 78.0;
+
+    double shape = 0.0;
+    if(phase < 0.12) {
+        const double t = phase / 0.12;
+        shape = std::pow(t, 0.6);
+    } else if (phase < 0.30) {
+        // Sistolik zirveden hafif inis
+        const double t = (phase - 0.12) / 0.18;
+        shape = 1.0 - 0.35 * t;
+    } else if (phase < 0.45) {
+        // Dikrotik centik (kisa bir cokus)
+        const double t = (phase - 0.30) / 0.15;
+        shape = 0.65 - 0.20 * std::sin(t * 3.14159265358979323846);
+    } else if (phase < 0.62) {
+        // Dikrotik dalga (kucuk ikincil kabarma)
+        const double t = (phase - 0.45) / 0.17;
+        shape = 0.50 + 0.12 * std::sin(t * 3.14159265358979323846);
+    } else {
+        // Yavas diastolik dusus, baseline'a donus
+        const double t = (phase - 0.62) / 0.38;
+        shape = 0.50 * (1.0 - t);
+    }
+
+    if (shape < 0.0) shape = 0.0;
+    return static_cast<int>(baseline + amplitude * shape);
+}
+} // namespace
 
 
 SmmManager::SmmManager(QObject *parent)
@@ -883,12 +916,105 @@ void SmmManager::exportDataToExcel() {
         qDebug() << "Excel (CSV) dosyası Masaüstüne kaydedildi:" << filePath;
     }
 }
-void SmmManager::injectTestData(int spo2, int pulse) {
-    m_saturation = spo2;
-    m_pulseRate = pulse;
+void SmmManager::injectTestData(int spo2, int pulse, bool isSignalWeak, bool isPulseSearching) {
+    if(!m_isPortConnected) {
+        m_isPortConnected = true;
+        emit isPortConnectedChanged(m_isPortConnected);
+    }
 
-    emit saturationChanged(m_saturation);
-    emit pulseRateChanged(m_pulseRate);
+    if(isPulseSearching) {
+        spo2 = 0;
+        pulse = 0;
+    }
+    if(m_pulseSearch != isPulseSearching) {
+        m_pulseSearch = isPulseSearching;
+        emit pulseSearchChanged(m_pulseSearch);
+    }
+    if(m_isSignalWeak != isSignalWeak) {
+        m_isSignalWeak = isSignalWeak;
+        emit isSignalWeakChanged(m_isSignalWeak);
+    }
+
+    const bool newBeepVoice = !isPulseSearching;
+    if(m_beepVoice != newBeepVoice) {
+        m_beepVoice = newBeepVoice;
+        emit beepVoiceChanged(m_beepVoice);
+    }
+
+    if(m_saturation != spo2) {
+        m_saturation = spo2;
+        emit saturationChanged(m_saturation);
+    }
+
+    if(m_pulseRate != pulse) {
+        m_pulseRate = pulse;
+        emit pulseRateChanged(m_pulseRate);
+    }
+
+    static double s_wavePhase = 0.0;
+
+
+    if (isPulseSearching) {
+        m_waveform = 0;
+        emit waveformChanged(m_waveform);
+    } else {
+        // Hedef nabza göre saniyedeki atım sayısı
+        const double beatsPerSecond = m_pulseRate > 0 ? (m_pulseRate / 60.0) : 1.0;
+
+        // Simülatör 40ms'de bir (Saniyede 25 kez) çalıştığı için 25.0'a bölüyoruz
+        const double phaseStep = beatsPerSecond / 25.0;
+
+        s_wavePhase += phaseStep;
+        if (s_wavePhase >= 1.0) s_wavePhase -= 1.0;
+
+        m_waveform = generateRealisticPpgSample(s_wavePhase);
+        emit waveformChanged(m_waveform);
+    }
+
+    bool currentSpo2AlarmState = false;
+    if(m_saturation > 0 && (m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit)) {
+        currentSpo2AlarmState = true;
+        QString priorityStr = "Red";
+        if(m_spo2AlarmPriority == AlarmPriority::Yellow) priorityStr = "Yellow";
+        else if(m_spo2AlarmPriority == AlarmPriority::Blue) priorityStr = "Blue";
+
+        logAlarm("SpO2 (Demo)", m_saturation, priorityStr);
+    }
+
+    if(m_isSpo2AlarmActive != currentSpo2AlarmState) {
+        m_isSpo2AlarmActive = currentSpo2AlarmState;
+        emit isSpo2AlarmActiveChanged(m_isSpo2AlarmActive);
+    }
+
+    bool currentPulseState = false;
+    if(m_pulseRate > 0 && (m_pulseRate < m_pulseLowerLimit || m_pulseRate > m_pulseUpperLimit)) {
+        currentPulseState = true;
+
+        QString priorityStr = "Red";
+        if(m_pulseAlarmPriority == AlarmPriority::Yellow) priorityStr = "Yellow";
+        else if(m_pulseAlarmPriority == AlarmPriority::Blue) priorityStr = "Blue";
+
+        logAlarm("Pulse (Demo)", m_pulseRate, priorityStr);
+    }
+
+    if(m_isPulseAlarmActive != currentPulseState) {
+        m_isPulseAlarmActive = currentPulseState;
+        emit isPulseAlarmActiveChanged();
+    }
+
+    if(m_isSpo2AlarmActive || m_isPulseAlarmActive) {
+        if(!m_isAlarmMuted) {
+            playSoundEffect(SoundType::Alarm);
+        } else {
+            stopSoundEffect();
+        }
+    }else if (!isPulseSearching) {
+        playSoundEffect(SoundType::Warning);
+    } else {
+        stopSoundEffect();
+    }
+
+
 }
 
 void SmmManager::parseBuffer(){

@@ -16,6 +16,8 @@ Rectangle {
     signal exportToExcel()
     signal toggleDemoMode()
 
+    property bool isDemoActive: false
+
     Text{
         text: "OPTIONS"
         color:"#ffffff"

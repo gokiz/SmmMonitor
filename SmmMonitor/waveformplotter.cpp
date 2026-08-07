@@ -58,3 +58,8 @@ void WaveformPlotter::paint(QPainter *painter){
         painter->drawLine(p1,p2);
     }
 }
+
+void WaveformPlotter::clear() {
+    m_points.clear();
+    update();
+}
