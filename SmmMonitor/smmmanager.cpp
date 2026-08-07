@@ -198,11 +198,19 @@ void SmmManager::disconnectPort() {
     m_pulseRate = 0;
     m_waveform = 0;
 
+    m_beepVoice = false;
+    m_isSignalWeak = false;
+    m_pulseSearch = false;
+
     stopSoundEffect();
 
     emit saturationChanged(m_saturation);
     emit pulseRateChanged(m_pulseRate);
     emit waveformChanged(m_waveform);
+
+    emit beepVoiceChanged(m_beepVoice);
+    emit isSignalWeakChanged(m_isSignalWeak);
+    emit pulseSearchChanged(m_pulseSearch);
 
     if(m_isPortConnected) {
         m_isPortConnected = false;
@@ -725,6 +733,10 @@ QSqlQueryModel *SmmManager::getAlarmLogsModel() {
 
 
 void SmmManager::logAlarm(const QString &paramType, int value, const QString &priority) {
+    if(m_isDemoMode) {
+        return;
+    }
+
     // SpO2 ve Pulse için ayrı ayrı zaman tutucular
     static qint64 lastSpo2LogTime = 0;
     static qint64 lastPulseLogTime = 0;
@@ -935,12 +947,6 @@ void SmmManager::injectTestData(int spo2, int pulse, bool isSignalWeak, bool isP
         emit isSignalWeakChanged(m_isSignalWeak);
     }
 
-    const bool newBeepVoice = !isPulseSearching;
-    if(m_beepVoice != newBeepVoice) {
-        m_beepVoice = newBeepVoice;
-        emit beepVoiceChanged(m_beepVoice);
-    }
-
     if(m_saturation != spo2) {
         m_saturation = spo2;
         emit saturationChanged(m_saturation);
@@ -969,6 +975,18 @@ void SmmManager::injectTestData(int spo2, int pulse, bool isSignalWeak, bool isP
 
         m_waveform = generateRealisticPpgSample(s_wavePhase);
         emit waveformChanged(m_waveform);
+    }
+
+    bool currentBeep = false;
+    if(!isPulseSearching) {
+        if(s_wavePhase < 0.15) {
+            currentBeep = true;
+        }
+
+        if(m_beepVoice != currentBeep) {
+            m_beepVoice = currentBeep;
+            emit beepVoiceChanged(m_beepVoice);
+        }
     }
 
     bool currentSpo2AlarmState = false;
@@ -1013,8 +1031,10 @@ void SmmManager::injectTestData(int spo2, int pulse, bool isSignalWeak, bool isP
     } else {
         stopSoundEffect();
     }
+}
 
-
+void SmmManager::setDemoMode(bool isDemo) {
+    m_isDemoMode = isDemo;
 }
 
 void SmmManager::parseBuffer(){

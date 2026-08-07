@@ -144,6 +144,9 @@ public:
     Q_INVOKABLE void exportDataToPdf();
     Q_INVOKABLE void exportDataToExcel();
 
+    Q_INVOKABLE void setDemoMode(bool isDemo);
+
+
 
 
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
@@ -256,6 +259,8 @@ private:
     void onMuteTimeout();
 
     int m_waveformSpeed = 25;
+
+    bool m_isDemoMode = false;
 };
 
 #endif // SMMMANAGER_H

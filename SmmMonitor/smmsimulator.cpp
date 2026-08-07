@@ -115,7 +115,7 @@ void SmmSimulator::generateMockData() {
 
 
 void SmmSimulator::startDemo() {
-    enterScenario(Scenario::Normal);
+    enterScenario(Scenario::SearchingForPulse);
     m_dataTimer->start(40);
     m_scenarioTimer->start(1000);
 }

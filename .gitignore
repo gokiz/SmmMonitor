@@ -87,4 +87,5 @@ build/
 .qtc_clangd/
 debug/
 release/
-*.wav
+Screenshots/
+Sounds2/

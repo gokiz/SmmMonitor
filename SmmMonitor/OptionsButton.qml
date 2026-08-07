@@ -348,12 +348,14 @@ Rectangle {
 
                 Text {
                     id: demoTextItem
-                    text: root.isDemoActive ? "Stop Demo Mode" : "Start Demo Mode"
+                    // Sabit bir alan verelim ki diğer yazılarla üst üste binmesin
+                    Layout.preferredHeight: 35
+                    Layout.alignment: Qt.AlignHCenter
 
-                    color: root.isDemoActive ? "#ef4444" : "#0ea5e9"
+                    text: isDemoActive ? "Stop Demo" : "Start Demo"
+                    color: isDemoActive ? "#ef4444" : "#0ea5e9"
                     font.bold: true
                     font.pixelSize: 15
-                    Layout.alignment: Qt.AlignHCenter
 
                     MouseArea {
                         anchors.fill: parent

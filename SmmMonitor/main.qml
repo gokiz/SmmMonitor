@@ -16,6 +16,9 @@ Window {
     property bool isMeasuringSpo2: false
     property bool isMeasuringPulse: false
     property bool isDemoActive: false
+
+    property bool demoBlink: false
+
     Component.onCompleted: {
         console.log("averageSecond:", smmManager.averageSecond,
                     "sec4:", SmmManager.sec4,
@@ -30,6 +33,7 @@ Window {
         isDemoActive = false;
 
         wavePlotter.clear();
+        smmManager.setDemoMode(false);
     }
 
 
@@ -82,6 +86,28 @@ Window {
         }
         return "--";
     }
+
+    Timer {
+        id: demoBlinkTimer
+        interval: smmManager.pulseRate > 0 ? (6000 / smmManager.pulseRate) : 1000
+        running: isDemoActive && smmManager.isPortConnected
+        repeat: true
+        onTriggered: {
+            demoBlink = true;
+            demoBlinkOffTimer.start();
+            if (smmManager.saturation === 0) isMeasuringSpo2 = true;
+            if (smmManager.pulseRate === 0) isMeasuringPulse = true;
+            measuringTimeoutTimer.restart();
+        }
+    }
+
+    Timer {
+        id: demoBlinkOffTimer
+        interval: 150
+        repeat: false
+        onTriggered: demoBlink = false
+    }
+
     //sensör açık/kapalı gösterimi
     Row {
         id: topHeaderRow
@@ -244,6 +270,8 @@ Window {
         anchors.right: parent.right
         anchors.margins: 15
 
+        isDemoActive: root.isDemoActive
+
         //optionsButton.qml içinden gönderilen siyali yakala ve veritabanını aç
         onOpenDatabase: {
             dbWindow.show()
@@ -263,6 +291,8 @@ Window {
             if(!isDemoActive) {
                 smmSimulator.startDemo();
                 isDemoActive = true;
+
+                smmManager.setDemoMode(true);
             } else {
                 stopDemoMode();
             }
