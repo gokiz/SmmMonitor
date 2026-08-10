@@ -209,34 +209,6 @@ Window {
     }
 
     Rectangle {
-        id: stopDemoButton
-        anchors.top: parent.top
-        anchors.right:muteAlarmButton.left
-        height: 40
-        width: 110
-        radius : 8
-        color: "#1e293b"
-        border.color: "#ef4444"
-        border.width: 1
-        visible: isDemoActive
-
-        Text {
-            anchors.centerIn: parent
-            text: "Stop Demo"
-            color: "#ef4444"
-            font.bold: true
-            font.pixelSize: 12
-        }
-        MouseArea {
-            anchors.fill: parent
-            cursorShape: Qt.PointingHandCursor
-            onClicked:  {
-                stopDemoMode();
-            }
-        }
-    }
-
-    Rectangle {
         id: muteAlarmButton
         anchors.top: parent.top
         anchors.right: optionsMenu.left
@@ -290,7 +262,7 @@ Window {
         onToggleDemoMode: {
             if(!isDemoActive) {
                 smmSimulator.startDemo();
-                isDemoActive = true;
+                root.isDemoActive = true;
 
                 smmManager.setDemoMode(true);
             } else {

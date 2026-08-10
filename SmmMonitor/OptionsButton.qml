@@ -352,8 +352,8 @@ Rectangle {
                     Layout.preferredHeight: 35
                     Layout.alignment: Qt.AlignHCenter
 
-                    text: isDemoActive ? "Stop Demo" : "Start Demo"
-                    color: isDemoActive ? "#ef4444" : "#0ea5e9"
+                    text: root.isDemoActive ? "Stop Demo" : "Start Demo"
+                    color: root.isDemoActive ? "#ef4444" : "#0ea5e9"
                     font.bold: true
                     font.pixelSize: 15
 
