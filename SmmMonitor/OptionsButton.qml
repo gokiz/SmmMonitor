@@ -183,15 +183,18 @@ Rectangle {
                     }
                     ComboBox {
                         id: waveformSpeedComboBox
-                        model: ["25 m/s", "500 m/s"]
+                        model: ["25 m/s", "50 m/s"]
                         Layout.preferredWidth: 105
-                        currentIndex: smmManager.waveformSpeed === 500 ? 1 : 0
+                        currentIndex: {
+                            if (smmManager.waveformSpeed === 50) return 1;
+                            return 0; // Varsayılan veya 25 için
+                        }
 
                         onActivated:  function(index) {
                             if(index === 0) {
                                 smmManager.setWaveformSpeed(25);
                             } else {
-                                smmManager.setWaveformSpeed(500);
+                                smmManager.setWaveformSpeed(50);
                             }
                         }
                     }

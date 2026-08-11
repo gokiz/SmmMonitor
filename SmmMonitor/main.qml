@@ -87,6 +87,7 @@ Window {
         return "--";
     }
 
+
     Timer {
         id: demoBlinkTimer
         interval: smmManager.pulseRate > 0 ? (6000 / smmManager.pulseRate) : 1000
@@ -521,6 +522,13 @@ Window {
                 border.color: smmManager.isPortConnected ? "#19b981" : "#334155"
                 clip: true
 
+                Component.onCompleted: {
+                    console.log("Waveform Alanı Genişliği (Pixel):", width)
+                }
+                onWidthChanged: {
+                    console.log("Waveform Alanı Yeniden Boyutlandı:", width)
+                }
+
                 RowLayout{
                     anchors.fill: parent
                     spacing: 0
@@ -586,6 +594,9 @@ Window {
                 isMeasuringPulse = false;
                 wavePlotter.clear();
             }
+        }
+        function onWaveformSpeedChanged(newSpeed) {
+            wavePlotter.setWaveformSpeed(newSpeed)
         }
     }
     Timer{

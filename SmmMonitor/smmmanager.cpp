@@ -815,10 +815,12 @@ void SmmManager::onMuteTimeout() {
 }
 
 void SmmManager::setWaveformSpeed(int speed) {
-    if(speed != 25 && speed != 500) return;
+    if(speed != 25 && speed != 50) return;
     if(m_waveformSpeed == speed) return;
     m_waveformSpeed = speed;
     emit waveformSpeedChanged(m_waveformSpeed);
+
+
 
     qDebug() << "Waveform speed updated to:" << m_waveformSpeed << " m/s";
 }

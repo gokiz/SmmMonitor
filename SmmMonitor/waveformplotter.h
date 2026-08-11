@@ -15,11 +15,14 @@ public:
     Q_INVOKABLE void addPoint(int value);
     Q_INVOKABLE void clear();
 
+    Q_INVOKABLE void setWaveformSpeed(int speed);
+
 private:
     QList<int>m_points;
     int m_currentIndex; //çizimin x ekseninde o an nerede olduğunu tutar
     int m_maxPoints; // ekrana aynı anda sığacak nokta sayısı
     int m_gapSize; // çizinm imlecinin önğndeki silinen (boş) alanın boyutu
+    int m_waveformSpeed = 25;
 };
 
 #endif // WAVEFORMPLOTTER_H
