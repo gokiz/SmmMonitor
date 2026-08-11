@@ -146,10 +146,13 @@ public:
 
     Q_INVOKABLE void setDemoMode(bool isDemo);
 
-
-
-
     QByteArray updatePatientModeInPacket(QByteArray currentPacket, PatientMode newMode);
+
+    void injectRawDataForTest (const QByteArray &data) {
+        m_buffer.append(data);
+        parseBuffer();
+    }
+
 
 public slots:
     void injectTestData(int spo2, int pulseRate, bool isSignalWeak = false, bool isPulseSearching = false);
