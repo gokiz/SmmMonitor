@@ -20,6 +20,10 @@ private slots:
     void cleanup();
     void testParseValidAA55Packet();
 
+    void testInvalidChecksumPacket();
+    void testIncompletePacket();
+    void testNoisyHeaderPacket();
+
 private:
     static QByteArray buildPacket(quint8 code, const QByteArray &data);
 };
@@ -94,6 +98,75 @@ void SmmTest::testParseValidAA55Packet() {
 
     manager.injectRawDataForTest(packet);
 
+    QCOMPARE(manager.saturation(), expectedSpo2);
+    QCOMPARE(manager.pulseRate(), expectedPulse);
+
+}
+
+void SmmTest::testInvalidChecksumPacket() {
+    SmmManager manager;
+    QByteArray data;
+    data.resize(9);
+    data.fill(0x00);
+    data[3] = 98;
+    data[4] = 0;
+    data[5] = 75;
+
+    QByteArray packet = buildPacket(21, data);
+
+    // Son baytı güvenli bir şekilde al ve 1 artırarak boz
+    char corruptedChecksum = static_cast<char>(packet.at(packet.size() - 1) + 1);
+    packet[packet.size() - 1] = corruptedChecksum;
+
+    manager.injectRawDataForTest(packet);
+
+    QCOMPARE(manager.saturation(), 0);
+    QCOMPARE(manager.pulseRate(), 0);
+
+
+}
+
+void SmmTest::testIncompletePacket() {
+    SmmManager manager ;
+
+    QByteArray data;
+    data.resize(9);
+    data.fill(0x00);
+    data[3] = 97;
+    data[5] = 80;
+
+    QByteArray packet = buildPacket(21, data);
+
+    packet.chop(3);
+
+    manager.injectRawDataForTest(packet);
+    QCOMPARE(manager.saturation(), 0);
+    QCOMPARE(manager.pulseRate(), 0);
+
+}
+
+void SmmTest::testNoisyHeaderPacket() {
+    SmmManager manager;
+    const int expectedSpo2 = 99;
+    const int expectedPulse = 72;
+
+    QByteArray data;
+    data.resize(9);
+    data.fill(0x00);
+    data[3] = static_cast<char>(expectedSpo2);
+    data[4] = static_cast<char>((expectedPulse >> 8) & 0xFF);
+    data[5] = static_cast<char>(expectedPulse & 0xFF);
+
+    QByteArray validPacket = buildPacket(21, data);
+
+    QByteArray noisyPacket;
+
+    noisyPacket.append(static_cast<char>(0xFF));
+    noisyPacket.append(static_cast<char>(0x12));
+    noisyPacket.append(static_cast<char>(0x00));
+    noisyPacket.append(validPacket);
+
+    manager.injectRawDataForTest(noisyPacket);
     QCOMPARE(manager.saturation(), expectedSpo2);
     QCOMPARE(manager.pulseRate(), expectedPulse);
 
