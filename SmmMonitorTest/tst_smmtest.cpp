@@ -24,6 +24,9 @@ private slots:
     void testIncompletePacket();
     void testNoisyHeaderPacket();
 
+    void testSpo2AlarmTrigger();
+    void testBitmaskStates();
+
 private:
     static QByteArray buildPacket(quint8 code, const QByteArray &data);
 };
@@ -172,6 +175,38 @@ void SmmTest::testNoisyHeaderPacket() {
 
 }
 
+void SmmTest::testSpo2AlarmTrigger() {
+    SmmManager manager;
+
+    // 1. Önce portu bağlı hale getir ki alarm ve veri işleme aktif olsun
+    manager.connectToModule("COM_TEST"); // Veya simüle edilmiş port durumu
+    // Alternatif olarak port bağlı bayrağını tetikleyecek uygun bir başlangıç yapılabilir.
+
+    manager.setSpo2LowerLimit(90);
+
+    QByteArray payload(9, 0);
+    payload[3] = 85; // Alt limitin altında SpO2 değeri (85 < 90)
+
+    QByteArray packet = buildPacket(21, payload); // Biolight code = 21
+    manager.injectRawDataForTest(packet);
+
+    QVERIFY(manager.isSpo2AlarmActive() == true);
+}
+
+void SmmTest::testBitmaskStates() {
+    SmmManager manager;
+    QByteArray payload1(9, 0);
+
+    // isWeak kontrolü (data0 & (1 << 4)) -> 0x10 maskesi gerektirir
+    payload1[0] = 0x10;
+
+    QByteArray packet1 = buildPacket(21, payload1);
+    manager.injectRawDataForTest(packet1);
+
+    QVERIFY(manager.isSignalWeak() == true);
+}
+
 QTEST_MAIN(SmmTest)
 
 #include "tst_smmtest.moc"
+
