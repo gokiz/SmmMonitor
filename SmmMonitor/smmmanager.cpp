@@ -778,7 +778,7 @@ void SmmManager::playSoundEffect(SoundType type) {
 
     switch(type) {
     case SoundType::Alarm :
-        soundPath = "qrc:/sounds2/alarmSound2.wav";
+        soundPath = "qrc:/sounds2/lowAlarm.wav";
         m_soundPlayer->setLoops(QMediaPlayer::Infinite);
         break;
     case SoundType::Warning:
@@ -819,6 +819,48 @@ void SmmManager::onMuteTimeout() {
     emit isAlarmMutedChanged(m_isAlarmMuted);
 
     qDebug() << "Mute duration expired. Alarms are active again.";
+}
+
+void SmmManager::updateAlarmSound() {
+    if(m_isAlarmMuted) {
+        stopSoundEffect();
+        return;
+    }
+    if(!m_isSpo2AlarmActive && !m_isPulseAlarmActive) {
+        stopSoundEffect();
+        return;
+    }
+    //varsayılan olarak en düşük önceliği atıyoru<
+    AlarmPriority highestPriority = AlarmPriority::Blue;
+
+    if (m_isSpo2AlarmActive) {
+        highestPriority = m_spo2AlarmPriority;
+    }
+
+    if(m_isPulseAlarmActive) {
+        if(m_pulseAlarmPriority == AlarmPriority::Red) {
+            highestPriority = AlarmPriority::Red;
+        } else if(m_pulseAlarmPriority == AlarmPriority::Yellow && highestPriority != AlarmPriority::Red) {
+            highestPriority = AlarmPriority::Yellow;
+        }
+    }
+
+    QString soundPath;
+    if(highestPriority == AlarmPriority::Red) {
+        soundPath = "qrc:/sounds2/highAlarm.wav";
+    } else if(highestPriority == AlarmPriority::Yellow) {
+        soundPath = "qrc:/sounds2/mediumAlarm.wav";
+    } else {
+        soundPath = "qrc:/sounds2/lowAlarm.wav";
+    }
+
+    if(m_soundPlayer->source() != QUrl(soundPath)) {
+        m_soundPlayer->setSource(QUrl(soundPath));
+        m_soundPlayer->setLoops(QMediaPlayer::Infinite);
+        m_soundPlayer->play();
+    } else if(!m_soundPlayer->isPlaying() && m_soundPlayer->mediaStatus() != QMediaPlayer::InvalidMedia) {
+        m_soundPlayer->play();
+    }
 }
 
 void SmmManager::setWaveformSpeed(int speed) {
@@ -997,17 +1039,7 @@ void SmmManager::injectTestData(int spo2, int pulse, bool isSignalWeak, bool isP
         emit isPulseAlarmActiveChanged();
     }
 
-    if(m_isSpo2AlarmActive || m_isPulseAlarmActive) {
-        if(!m_isAlarmMuted) {
-            playSoundEffect(SoundType::Alarm);
-        } else {
-            stopSoundEffect();
-        }
-    }else if (!isPulseSearching) {
-        playSoundEffect(SoundType::Warning);
-    } else {
-        stopSoundEffect();
-    }
+    updateAlarmSound();
 }
 
 void SmmManager::setDemoMode(bool isDemo) {
@@ -1204,15 +1236,7 @@ void SmmManager::parseBuffer(){
                     emit isPulseAlarmActiveChanged();
                 }
 
-                if(m_isSpo2AlarmActive || m_isPulseAlarmActive) {
-                    if(!m_isAlarmMuted){
-                        playSoundEffect(SoundType::Alarm);
-                    }else {
-                        stopSoundEffect();
-                    }
-                } else {
-                    playSoundEffect(SoundType::Warning);
-                }
+                updateAlarmSound();
 
                 // --- 3. NORMAL ÖLÇÜM GEÇMİŞİ KAYDI (2 saniyede bir) ---
                 qint64 currentTime = QDateTime::currentMSecsSinceEpoch();

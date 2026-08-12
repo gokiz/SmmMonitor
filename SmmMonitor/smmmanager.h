@@ -275,6 +275,8 @@ private:
 
     bool m_isDemoMode = false;
     QTimer *m_demoWaveformTimer = nullptr;
+
+    void updateAlarmSound();
 };
 
 #endif // SMMMANAGER_H
