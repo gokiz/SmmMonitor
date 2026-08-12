@@ -1,8 +1,8 @@
 #include "waveformplotter.h"
 
 WaveformPlotter::WaveformPlotter(QQuickItem *parent) : QQuickPaintedItem(parent){
-    m_maxPoints = 350;
-    m_gapSize = 5;
+    m_maxPoints = 360;
+    m_gapSize = 3;
     m_currentIndex = 0;
 
     m_points.resize(m_maxPoints);
@@ -59,6 +59,21 @@ void WaveformPlotter::setWaveformSpeed(int speed) {
     if(speed != 25 && speed != 50) {
         return;
     }
+    if(m_waveformSpeed == speed) {
+        return;
+    }
+
     m_waveformSpeed = speed;
+
+    if(m_waveformSpeed == 50) {
+        m_maxPoints = 180;
+    } else {
+        m_maxPoints = 360;
+    }
+
+    m_points.resize(m_maxPoints);
+    m_points.fill(-1);
+    m_currentIndex = 0;
+
     update();
 }

@@ -80,6 +80,9 @@ SmmManager::SmmManager(QObject *parent)
     m_muteTimer->setSingleShot(true);
     connect(m_muteTimer, &QTimer::timeout, this, &SmmManager::onMuteTimeout);
 
+    m_demoWaveformTimer = new QTimer(this);
+    connect(m_demoWaveformTimer, &QTimer::timeout, this, &SmmManager::updateDemoWaveform);
+
 }
 SmmManager::~SmmManager()
 {
@@ -262,6 +265,10 @@ void SmmManager::readData(){
 
 //3 saniye boyunca veri gelmezse çalışacak kurtarma fonksiyonu
 void SmmManager::onWatchdogTimeout() {
+    if(m_isDemoMode || m_isSimulationMode) {
+        return;
+    }
+
     if(m_saturation != 0 || m_pulseRate != 0 || m_isSignalWeak || m_waveform != 0){
         m_saturation = 0;
         m_pulseRate = 0;
@@ -959,38 +966,6 @@ void SmmManager::injectTestData(int spo2, int pulse, bool isSignalWeak, bool isP
         emit pulseRateChanged(m_pulseRate);
     }
 
-    static double s_wavePhase = 0.0;
-
-
-    if (isPulseSearching) {
-        m_waveform = 0;
-        emit waveformChanged(m_waveform);
-    } else {
-        // Hedef nabza göre saniyedeki atım sayısı
-        const double beatsPerSecond = m_pulseRate > 0 ? (m_pulseRate / 60.0) : 1.0;
-
-        // Simülatör 40ms'de bir (Saniyede 25 kez) çalıştığı için 25.0'a bölüyoruz
-        const double phaseStep = beatsPerSecond / 25.0;
-
-        s_wavePhase += phaseStep;
-        if (s_wavePhase >= 1.0) s_wavePhase -= 1.0;
-
-        m_waveform = generateRealisticPpgSample(s_wavePhase);
-        emit waveformChanged(m_waveform);
-    }
-
-    bool currentBeep = false;
-    if(!isPulseSearching) {
-        if(s_wavePhase < 0.15) {
-            currentBeep = true;
-        }
-
-        if(m_beepVoice != currentBeep) {
-            m_beepVoice = currentBeep;
-            emit beepVoiceChanged(m_beepVoice);
-        }
-    }
-
     bool currentSpo2AlarmState = false;
     if(m_saturation > 0 && (m_saturation < m_spo2LowerLimit || m_saturation > m_spo2UpperLimit)) {
         currentSpo2AlarmState = true;
@@ -1037,6 +1012,46 @@ void SmmManager::injectTestData(int spo2, int pulse, bool isSignalWeak, bool isP
 
 void SmmManager::setDemoMode(bool isDemo) {
     m_isDemoMode = isDemo;
+    m_isSimulationMode = isDemo;
+
+    if(isDemo) {
+        if(m_watchdogTimer && m_watchdogTimer->isActive()) {
+            m_watchdogTimer->stop();
+        }
+        if(m_demoWaveformTimer && !m_demoWaveformTimer->isActive()) {
+            m_demoWaveformTimer->start(40);
+        }
+    } else {
+        if(m_demoWaveformTimer && m_demoWaveformTimer->isActive()) {
+            m_demoWaveformTimer->stop();
+        }
+    }
+}
+void SmmManager::updateDemoWaveform() {
+    if(!m_isSimulationMode) return;
+    if(m_pulseSearch) {
+        m_waveform = 0;
+        emit waveformChanged(m_waveform);
+        return;
+    }
+    static double s_wavePhase = 0.0;
+    const double beatsPerSecond = m_pulseRate > 0 ? (m_pulseRate / 60.0) : 1.0;
+    const double phaseStep = beatsPerSecond / 25.0;
+
+    s_wavePhase += phaseStep;
+    if(s_wavePhase >= 1.0) s_wavePhase -= 1.0;
+
+    m_waveform = generateRealisticPpgSample(s_wavePhase);
+    emit waveformChanged(m_waveform);
+
+    bool currentBeep = false;
+    if(s_wavePhase < 0.15) {
+        currentBeep = true;
+    }
+    if(m_beepVoice != currentBeep) {
+        m_beepVoice = currentBeep;
+        emit beepVoiceChanged(m_beepVoice);
+    }
 }
 
 void SmmManager::parseBuffer(){

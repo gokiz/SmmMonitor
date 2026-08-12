@@ -158,7 +158,15 @@ public slots:
     void injectTestData(int spo2, int pulseRate, bool isSignalWeak = false, bool isPulseSearching = false);
     void setSimulationMode(bool isSimulating) {
         m_isSimulationMode = isSimulating;
+
+        if(m_isSimulationMode && m_demoWaveformTimer) {
+            m_demoWaveformTimer->start(40);
+        } else if (m_demoWaveformTimer) {
+            m_demoWaveformTimer->stop();
+        }
     }
+
+
     void parseIncomingData(const QByteArray &data);
 
 
@@ -191,6 +199,8 @@ private slots:
     void readData(); //UART'a veri geldikçe tetiklenir
     void sendNextHandshakeByte();
     void onWatchdogTimeout(); // Modül uyuduğunda tetiklenecek
+
+    void updateDemoWaveform();
 private:
     quint64 m_lastDbSaveTime = 0;
     void parseBuffer(); //gelen baytları SMM protokolüne göre işler
@@ -264,6 +274,7 @@ private:
     int m_waveformSpeed = 25;
 
     bool m_isDemoMode = false;
+    QTimer *m_demoWaveformTimer = nullptr;
 };
 
 #endif // SMMMANAGER_H
