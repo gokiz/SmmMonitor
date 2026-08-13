@@ -522,13 +522,6 @@ Window {
                 border.color: smmManager.isPortConnected ? "#19b981" : "#334155"
                 clip: true
 
-                Component.onCompleted: {
-                    console.log("Waveform Alanı Genişliği (Pixel):", width)
-                }
-                onWidthChanged: {
-                    console.log("Waveform Alanı Yeniden Boyutlandı:", width)
-                }
-
                 RowLayout{
                     anchors.fill: parent
                     spacing: 0
@@ -839,6 +832,57 @@ Window {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: smmManager.pulseAlarmPriority = SmmManager.Red
                     }
+                }
+            }
+        }
+    }
+    //IP GİRİŞ ALANI
+    Row {
+        id: serverIpRow
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.bottomMargin: 8
+        anchors.leftMargin: 40
+        spacing : 8
+        z : 99 //diğer katmanların altında kalmaması için en üste alıyoruz
+        Text {
+            text: "Server IP:"
+            color: "#64748b"
+            font.pixelSize: 12
+            font.bold: true
+            anchors.verticalCenter: parent.verticalCenter
+        }
+
+        Rectangle {
+            width: 120
+            height: 20
+            color: "#1e293b"
+            border.color: "#334155"
+            border.width: 1
+            radius: 4
+            anchors.verticalCenter: parent.verticalCenter
+            clip: true
+
+            TextInput {
+                id: ipInput
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                verticalAlignment: TextInput.AlignVCenter
+                color: "#ffffff"
+                font.pixelSize: 12
+
+                // Placeholder yerine başlangıç değeri veriyoruz
+                text: "127.0.0.1"
+
+                // Etrafındaki siyah seçim çizgisini kaldırır
+                selectByMouse: true
+                selectionColor: "#0ea5e9"
+
+                onEditingFinished: {
+                    // Odak kaybolduğunda veya Enter'a basıldığında tetiklenir
+                    smmManager.setTargetIp(text)
+                    console.log("Hedef IP ayarlandı: " + text)
                 }
             }
         }

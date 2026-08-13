@@ -12,6 +12,8 @@
 #include <QtMultimedia/QSoundEffect>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QUdpSocket>
+#include <QHostAddress>
 
 class SmmManager : public QObject
 {
@@ -153,6 +155,8 @@ public:
         parseBuffer();
     }
 
+    Q_INVOKABLE void setTragetIp(const QString &ipAddress);
+
 
 public slots:
     void injectTestData(int spo2, int pulseRate, bool isSignalWeak = false, bool isPulseSearching = false);
@@ -277,6 +281,12 @@ private:
     QTimer *m_demoWaveformTimer = nullptr;
 
     void updateAlarmSound();
+
+    QUdpSocket *m_udpSocket;
+    QHostAddress m_targetIp;
+    const quint16 m_targetPort = 45454; //sunucunun dinleyeceği port
+
+    void sendUdpData();
 };
 
 #endif // SMMMANAGER_H

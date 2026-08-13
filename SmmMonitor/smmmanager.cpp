@@ -83,6 +83,8 @@ SmmManager::SmmManager(QObject *parent)
     m_demoWaveformTimer = new QTimer(this);
     connect(m_demoWaveformTimer, &QTimer::timeout, this, &SmmManager::updateDemoWaveform);
 
+    m_udpSocket = new QUdpSocket(this); //memory leak olmaması için this veriyoruz
+
 }
 SmmManager::~SmmManager()
 {
@@ -1247,10 +1249,34 @@ void SmmManager::parseBuffer(){
 
                 m_waveform = rawWaveform;
                 emit waveformChanged(m_waveform);
+
+                sendUdpData();
             }
         }
-
-
         m_buffer.remove(0, totalPacketSize);
     }
+}
+
+void SmmManager::setTragetIp(const QString &ipAddress) {
+    if(ipAddress.isEmpty()) {
+        m_targetIp.clear();
+        qDebug() << "UDP Hedef IP temizlendi. Veri gönderimi durduruldu.";
+    } else {
+        m_targetIp = QHostAddress(ipAddress);
+        qDebug() << "UDP Hedef Ip ayarlandı:" << m_targetIp.toString() << "Port: " << m_targetPort;
+    }
+}
+
+
+void SmmManager::sendUdpData() {
+    if(m_targetIp.isNull()) return;
+
+    QByteArray datagram;
+    QDataStream out(&datagram, QIODevice::WriteOnly);
+
+
+    out.setVersion(QDataStream::Qt_6_0);
+    out << m_saturation << m_pulseRate << m_waveform;
+
+    m_udpSocket->writeDatagram(datagram, m_targetIp, m_targetPort);
 }
