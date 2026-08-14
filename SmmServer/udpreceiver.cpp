@@ -23,6 +23,7 @@ UdpReceiver::UdpReceiver(QObject *parent)
 int UdpReceiver::spo2() const {return m_spo2;}
 int UdpReceiver::pulseRate() const {return m_pulseRate;}
 int UdpReceiver::waveform() const {return m_waveform;}
+bool UdpReceiver::isConnected() const {return m_isConnected;}
 
 void UdpReceiver::readPendingDatagrams() {
     while (m_udpSocket->hasPendingDatagrams()) {
@@ -38,6 +39,11 @@ void UdpReceiver::readPendingDatagrams() {
 
         in >> m_spo2 >> m_pulseRate >> m_waveform;
 
+        if(!m_isConnected){
+            m_isConnected = true;
+            emit connectionStatusChanged(m_isConnected);
+        }
+
         m_watchdogTimer->start();
 
         emit dataReceived();
@@ -50,6 +56,11 @@ void UdpReceiver::connectionLost(){
     m_spo2 = 0;
     m_pulseRate = 0;
     m_waveform = 0;
+
+    if(m_isConnected) {
+        m_isConnected = false;
+        emit connectionStatusChanged(m_isConnected);
+    }
 
     emit dataReceived();
 }

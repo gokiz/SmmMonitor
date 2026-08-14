@@ -17,6 +17,31 @@ Window {
             serverGraph.addPoint(udpReceiver.waveform)
         }
     }
+
+    Row {
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing: 10
+
+        Rectangle {
+            width: 14
+            height: 14
+            radius: 7
+            color: udpReceiver.isConnected ? "#10b981" : "#ef4444"
+            anchors.verticalCenter: parent.verticalCenter
+            Behavior on color {
+
+                ColorAnimation{ duration: 300}
+            }
+        }
+        Text  {
+            text: udpReceiver.isConnected ? "Connection is Active (Sensor is Working)" : "Connection Lost / Waiting..."
+            color: udpReceiver.isConnected ? "#10b981" : "#ef4444"
+            font.pixelSize: 14
+            font.bold: true
+            anchors.verticalCenter: parent.verticalCenter
+        }
+    }
+
     Column {
         anchors.centerIn: parent
         spacing: 30
@@ -39,7 +64,7 @@ Window {
 
             Text {
                 anchors.centerIn: parent
-                text: "SpO2: " + (udpReceiver.spo2 === 0 ? "--" : udpReceiver.spo2) + "%"
+                text: "SpO2: " + (udpReceiver.spo2 === 0 ? "--" : udpReceiver.spo2) + " %"
                 color: "#10b981"
                 font.pixelSize: 28
                 font.bold: true
@@ -56,7 +81,7 @@ Window {
 
             Text {
                 anchors.centerIn: parent
-                text: "Pulse: " + (udpReceiver.pulseRate === 0 ? "--" : udpReceiver.pulseRate) + "bpm"
+                text: "Pulse: " + (udpReceiver.pulseRate === 0 ? "--" : udpReceiver.pulseRate) + " bpm"
                 color: "#ef4444"
                 font.pixelSize: 28
                 font.bold: true

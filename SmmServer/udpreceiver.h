@@ -12,6 +12,8 @@ class UdpReceiver : public QObject
     Q_PROPERTY(int pulseRate READ pulseRate NOTIFY dataReceived)
     Q_PROPERTY(int waveform READ waveform NOTIFY dataReceived)
 
+    Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectionStatusChanged)
+
 public:
     explicit UdpReceiver(QObject *parent = nullptr);
 
@@ -19,8 +21,11 @@ public:
     int pulseRate() const;
     int waveform() const;
 
+    bool isConnected() const;
+
 signals:
     void dataReceived();
+    void connectionStatusChanged(bool status);
 
 private slots:
     void readPendingDatagrams();
@@ -33,6 +38,7 @@ private:
     int m_spo2 = 0;
     int m_pulseRate = 0;
     int m_waveform = 0;
+    bool m_isConnected = false;
 };
 
 #endif // UDPRECEIVER_H
