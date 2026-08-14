@@ -1,0 +1,75 @@
+#include "waveformplotter.h"
+
+WaveformPlotter::WaveformPlotter(QQuickItem *parent) : QQuickPaintedItem(parent) {
+    m_maxPoints = 360;
+    m_gapSize = 3;
+    m_currentIndex = 0;
+
+    m_points.resize(m_maxPoints);
+    m_points.fill(0);
+
+    setAntialiasing(true);
+}
+
+void WaveformPlotter::addPoint(int value) {
+    m_points[m_currentIndex] = value;
+    m_currentIndex = (m_currentIndex + 1) % m_maxPoints;
+
+    for (int i = 0; i < m_gapSize; ++i) {
+        m_points[(m_currentIndex + 1) % m_maxPoints]  = -1;
+    }
+    update();
+}
+
+void WaveformPlotter::paint(QPainter *painter) {
+    if(m_points.isEmpty()) return;
+
+    QPen pen(QColor(0x10, 0xB9, 0x81));
+    pen.setWidth(2);
+    pen.setJoinStyle(Qt::RoundJoin);
+    painter->setPen(pen);
+
+    double stepX = width() / (double)(m_maxPoints - 1);
+    double scaleY = height() / 126.0;
+
+    for (int i = 0; i < m_points.size() - 1; ++i) {
+        if(m_points[i] == -1 || m_points[i+1] == -1) {
+            continue;
+        }
+        QPointF p1(i * stepX, height() - (m_points[i] * scaleY));
+        QPointF p2((i + 1) * stepX, height() - (m_points[i+1] * scaleY));
+
+        if(p1.x() > width() && p2.x() > width()) break;
+
+        painter->drawLine(p1, p2);
+    }
+}
+
+void WaveformPlotter::clear() {
+    m_points.fill(0);
+    m_currentIndex = 0;
+    update();
+}
+
+void WaveformPlotter::setWaveformSpeed(int speed) {
+    if(speed != 25 && speed != 50){
+        return;
+    }
+    if(m_waveformSpeed == speed){
+        return;
+    }
+
+    m_waveformSpeed = speed;
+
+    if(m_waveformSpeed == 50) {
+        m_maxPoints = 180;
+    } else{
+        m_maxPoints = 360;
+    }
+
+    m_points.resize(m_maxPoints);
+    m_points.fill(-1);
+    m_currentIndex = 0;
+
+    update();
+}

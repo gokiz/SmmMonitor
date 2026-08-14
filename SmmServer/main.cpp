@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include "udpreceiver.h"
+#include "waveformplotter.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,6 +12,7 @@ int main(int argc, char *argv[])
 
     // "Backedn" yerine "Backend" olarak düzeltildi
     qmlRegisterType<UdpReceiver>("Backend", 1, 0, "UdpReceiver");
+    qmlRegisterType<WaveformPlotter>("Smm.Grafik", 1, 0, "WaveformGraph");
 
     QQmlApplicationEngine engine;
 

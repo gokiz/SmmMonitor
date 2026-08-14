@@ -6,7 +6,8 @@ QT += core gui qml quick network
 
 SOURCES += \
         main.cpp \
-        udpreceiver.cpp
+        udpreceiver.cpp \
+        waveformplotter.cpp
 
 RESOURCES += qml.qrc
 
@@ -22,4 +23,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    udpreceiver.h
+    udpreceiver.h \
+    waveformplotter.h

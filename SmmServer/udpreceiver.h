@@ -10,6 +10,7 @@ class UdpReceiver : public QObject
     Q_PROPERTY(int spo2 READ spo2 NOTIFY dataReceived)
     Q_PROPERTY(int pulseRate READ pulseRate NOTIFY dataReceived)
     Q_PROPERTY(int waveform READ waveform NOTIFY dataReceived)
+    Q_PROPERTY(int waveform READ waveform NOTIFY dataReceived)
 
 public:
     explicit UdpReceiver(QObject *parent = nullptr);
