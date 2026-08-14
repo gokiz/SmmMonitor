@@ -14,8 +14,6 @@ Window {
         id: udpReceiver
 
         onDataReceived: {
-
-            console.log("QML'e Ulaşan Dalga Verisi:", udpReceiver.waveform)
             serverGraph.addPoint(udpReceiver.waveform)
         }
     }

@@ -3,13 +3,13 @@
 
 #include <QObject>
 #include <QUdpSocket>
+#include <QTimer>
 
 class UdpReceiver : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int spo2 READ spo2 NOTIFY dataReceived)
     Q_PROPERTY(int pulseRate READ pulseRate NOTIFY dataReceived)
-    Q_PROPERTY(int waveform READ waveform NOTIFY dataReceived)
     Q_PROPERTY(int waveform READ waveform NOTIFY dataReceived)
 
 public:
@@ -24,9 +24,12 @@ signals:
 
 private slots:
     void readPendingDatagrams();
+    void connectionLost();
 
 private:
     QUdpSocket *m_udpSocket;
+    QTimer *m_watchdogTimer;
+
     int m_spo2 = 0;
     int m_pulseRate = 0;
     int m_waveform = 0;

@@ -14,6 +14,10 @@ UdpReceiver::UdpReceiver(QObject *parent)
     }
 
     connect(m_udpSocket, &QUdpSocket::readyRead, this, &UdpReceiver::readPendingDatagrams);
+
+    m_watchdogTimer = new QTimer(this);
+    connect(m_watchdogTimer, &QTimer::timeout, this, &UdpReceiver::connectionLost);
+    m_watchdogTimer->start(3000);
 }
 
 int UdpReceiver::spo2() const {return m_spo2;}
@@ -34,6 +38,18 @@ void UdpReceiver::readPendingDatagrams() {
 
         in >> m_spo2 >> m_pulseRate >> m_waveform;
 
+        m_watchdogTimer->start();
+
         emit dataReceived();
     }
+}
+
+void UdpReceiver::connectionLost(){
+    qWarning() << "Uyari: Istemci ile baglanti koptu! Veriler sifirlaniyor...";
+
+    m_spo2 = 0;
+    m_pulseRate = 0;
+    m_waveform = 0;
+
+    emit dataReceived();
 }

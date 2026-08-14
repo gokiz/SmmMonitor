@@ -1190,6 +1190,9 @@ void SmmManager::parseBuffer(){
 
                 m_waveform = 0;
                 emit waveformChanged(m_waveform);
+
+                sendUdpData();
+
             } else {
                 if(m_saturation != rawSpo2 || m_pulseRate != rawPulseRate ) {
                     m_saturation = rawSpo2;
