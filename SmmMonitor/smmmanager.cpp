@@ -1086,6 +1086,8 @@ void SmmManager::updateDemoWaveform() {
         m_beepVoice = currentBeep;
         emit beepVoiceChanged(m_beepVoice);
     }
+
+    sendUdpData();
 }
 
 void SmmManager::parseBuffer(){
@@ -1257,7 +1259,7 @@ void SmmManager::parseBuffer(){
     }
 }
 
-void SmmManager::setTragetIp(const QString &ipAddress) {
+void SmmManager::setTargetIp(const QString &ipAddress) {
     if(ipAddress.isEmpty()) {
         m_targetIp.clear();
         qDebug() << "UDP Hedef IP temizlendi. Veri gönderimi durduruldu.";
@@ -1279,4 +1281,6 @@ void SmmManager::sendUdpData() {
     out << m_saturation << m_pulseRate << m_waveform;
 
     m_udpSocket->writeDatagram(datagram, m_targetIp, m_targetPort);
+
+    qDebug() << "UDP paketi gönderiliyor... SpO2: " << m_saturation;
 }

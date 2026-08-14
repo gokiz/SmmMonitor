@@ -2,5 +2,7 @@ TEMPLATE = subdirs
 
 SUBDIRS = \
     SmmMonitor \
-    SmmMonitorTest
+    SmmMonitorTest \
+    SmmServer \
+
 

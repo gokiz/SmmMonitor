@@ -155,7 +155,7 @@ public:
         parseBuffer();
     }
 
-    Q_INVOKABLE void setTragetIp(const QString &ipAddress);
+    Q_INVOKABLE void setTargetIp(const QString &ipAddress);
 
 
 public slots:
