@@ -543,6 +543,14 @@ Window {
                         Layout.bottomMargin: 15
                         Layout.rightMargin: 15
                         Layout.leftMargin: 5
+
+                        onWidthChanged: {
+                            wavePlotter.calibrate(Screen.pixelDensity)
+                        }
+
+                        Component.onCompleted: {
+                            wavePlotter.calibrate(Screen.pixelDensity)
+                        }
                     }
                 }
                 Text{

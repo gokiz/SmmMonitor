@@ -15,6 +15,7 @@ Window {
 
         onDataReceived: {
             serverGraph.addPoint(udpReceiver.waveform)
+            serverGraph.setWaveformSpeed(udpReceiver.waveformSpeed)
         }
     }
 
@@ -88,7 +89,7 @@ Window {
             }
         }
         Rectangle {
-            width: 450
+            width: parent.width - 40
             height: 250
             color: "#1e293b"
             radius: 8
@@ -98,9 +99,16 @@ Window {
 
             WaveformGraph {
                 id: serverGraph
-                width: parent.width - 20
-                height: parent.height - 20
-                anchors.centerIn:  parent
+                anchors.fill: parent
+                anchors.margins: 10
+                onWidthChanged: {
+                    serverGraph.calibrate(Screen.pixelDensity)
+                }
+
+                // UYGULAMA İLK AÇILDIĞINDA KALİBRASYONU YAP
+                Component.onCompleted: {
+                    serverGraph.calibrate(Screen.pixelDensity)
+                }
             }
         }
     }

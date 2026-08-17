@@ -1281,7 +1281,7 @@ void SmmManager::sendUdpData() {
 
 
     out.setVersion(QDataStream::Qt_6_0);
-    out << m_saturation << m_pulseRate << m_waveform;
+    out << m_saturation << m_pulseRate << m_waveform << m_waveformSpeed;
 
     m_udpSocket->writeDatagram(datagram, m_targetIp, m_targetPort);
 

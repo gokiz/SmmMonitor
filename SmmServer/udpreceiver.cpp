@@ -24,11 +24,10 @@ int UdpReceiver::spo2() const {return m_spo2;}
 int UdpReceiver::pulseRate() const {return m_pulseRate;}
 int UdpReceiver::waveform() const {return m_waveform;}
 bool UdpReceiver::isConnected() const {return m_isConnected;}
+int UdpReceiver::waveformSpeed() const {return m_waveformSpeed;}
 
 void UdpReceiver::readPendingDatagrams() {
     while (m_udpSocket->hasPendingDatagrams()) {
-
-        qDebug() << "UDP Paketi Yakalandi!";
 
         QByteArray datagram;
         datagram.resize(m_udpSocket->pendingDatagramSize());
@@ -37,7 +36,14 @@ void UdpReceiver::readPendingDatagrams() {
         QDataStream in(&datagram, QIODevice::ReadOnly);
         in.setVersion(QDataStream::Qt_6_0);
 
-        in >> m_spo2 >> m_pulseRate >> m_waveform;
+        int incomingSpeed;
+
+        in >> m_spo2 >> m_pulseRate >> m_waveform >> incomingSpeed;
+
+        if(m_waveformSpeed != incomingSpeed && (incomingSpeed == 25 || incomingSpeed == 50)){
+            m_waveformSpeed = incomingSpeed;
+            emit waveformSpeedChanged(m_waveformSpeed);
+        }
 
         if(!m_isConnected){
             m_isConnected = true;

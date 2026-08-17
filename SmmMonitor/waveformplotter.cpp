@@ -1,7 +1,7 @@
 #include "waveformplotter.h"
 
 WaveformPlotter::WaveformPlotter(QQuickItem *parent) : QQuickPaintedItem(parent){
-    m_maxPoints = 360;
+    m_maxPoints = 600;
     m_gapSize = 3;
     m_currentIndex = 0;
 
@@ -55,25 +55,41 @@ void WaveformPlotter::clear() {
     update();
 }
 
+void WaveformPlotter::calibrate(double pixelDensity) {
+    if(pixelDensity > 0) {
+        m_pixelDensity = pixelDensity;
+        recalculateMaxPoints();
+    }
+}
+
+void WaveformPlotter::recalculateMaxPoints() {
+    if(width() <= 0 || m_pixelDensity <= 0 ) return;
+
+    double speedInPixelsPerSecond = m_waveformSpeed * m_pixelDensity;
+
+    //600 nokta / 12 saniye
+    const double SAMPLING_RATE = 50.0;
+
+    double stepX = speedInPixelsPerSecond / SAMPLING_RATE;
+
+    int newMaxPoints = static_cast<int>(width() / stepX);
+    if(newMaxPoints < 10 ) newMaxPoints = 10;
+
+    if(m_maxPoints != newMaxPoints) {
+        m_maxPoints = newMaxPoints;
+        m_points.resize(m_maxPoints);
+        m_points.fill(-1);
+        m_currentIndex = 0;
+        update();
+    }
+}
+
 void WaveformPlotter::setWaveformSpeed(int speed) {
-    if(speed != 25 && speed != 50) {
-        return;
-    }
-    if(m_waveformSpeed == speed) {
-        return;
-    }
+    if(speed != 25 && speed != 50) return;
+    if(m_waveformSpeed == speed) return;
 
     m_waveformSpeed = speed;
 
-    if(m_waveformSpeed == 50) {
-        m_maxPoints = 180;
-    } else {
-        m_maxPoints = 360;
-    }
-
-    m_points.resize(m_maxPoints);
-    m_points.fill(-1);
-    m_currentIndex = 0;
-
-    update();
+    // YENİ: Hız (25/50) değiştiğinde noktaları baştan hesapla
+    recalculateMaxPoints();
 }
