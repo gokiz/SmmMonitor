@@ -795,9 +795,8 @@ void SmmManager::playSoundEffect(SoundType type) {
     if(m_soundPlayer->source() != QUrl(soundPath)) {
         m_soundPlayer->setSource(QUrl(soundPath));
     }
-    if(!m_soundPlayer->isPlaying()) {
-        m_soundPlayer->play();
-    }
+    m_soundPlayer->stop();
+    m_soundPlayer->play();
 }
 
 void SmmManager::stopSoundEffect() {
@@ -829,7 +828,11 @@ void SmmManager::updateAlarmSound() {
         return;
     }
     if(!m_isSpo2AlarmActive && !m_isPulseAlarmActive) {
-        stopSoundEffect();
+        QUrl currentSource = m_soundPlayer->source();
+        if(currentSource != QUrl("qrc:/sounds2/warningSound.wav") &&
+            currentSource != QUrl("qrc:/sounds2/infoSound.wav")) {
+            stopSoundEffect();
+        }
         return;
     }
     //varsayılan olarak en düşük önceliği atıyoru<

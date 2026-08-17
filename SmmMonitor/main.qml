@@ -579,6 +579,11 @@ Window {
                 if(smmManager.saturation === 0) isMeasuringSpo2 = true;
                 if(smmManager.pulseRate === 0) isMeasuringPulse = true;
 
+                if(!smmManager.isAlarmMuted && !smmManager.isSpo2AlarmActive && !smmManager.isPulseAlarmActive) {
+                    // SmmManager içerisindeki Q_ENUM(SoundType) listesinden Info(2) sesini tetikler
+                    smmManager.playSoundEffect(1);
+                }
+
                 measuringTimeoutTimer.restart();
             }
         }
