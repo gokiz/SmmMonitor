@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import Backend 1.0
 import Smm.Grafik 1.0
+import QtMultimedia
 
 Window {
     width: 600
@@ -10,6 +11,13 @@ Window {
     title: "SMM UDP Server Dashboard"
     color: "#0f172a"
 
+    MediaPlayer {
+        id: serverAlarmPlayer
+        source: "qrc:/sounds2/highAlarm.wav"
+        loops: MediaPlayer.Infinite
+        audioOutput: AudioOutput {volume: 1.0}
+    }
+
     UdpReceiver {
         id: udpReceiver
 
@@ -17,6 +25,29 @@ Window {
             serverGraph.addPoint(udpReceiver.waveform)
             serverGraph.setWaveformSpeed(udpReceiver.waveformSpeed)
         }
+        function updateServerAudio() {
+            if(udpReceiver.isAlarmMuted) {
+                serverAlarmPlayer.stop();
+                return;
+            }
+            if(udpReceiver.isSpo2AlarmActive || udpReceiver.isPulseAlarmActive) {
+                let highestPrio = Math.max(
+                        udpReceiver.isSpo2AlarmActive ? udpReceiver.spo2AlarmPriority : 0,
+                        udpReceiver.isPulseAlarmActive ? udpReceiver.pulseAlarmPriority : 0
+                );
+                if(highestPrio === 2) serverAlarmPlayer.source = "qrc:/sounds2/highAlarm.wav";
+                else if(highestPrio === 1) serverAlarmPlayer.source = "qrc:/sounds2/mediumAlarm.wav";
+                else serverAlarmPlayer.source = "qrc:/sounds2/lowAlarm.wav";
+
+                if(serverAlarmPlayer.playbackState !== MediaPlayer.PlayingState) {
+                    serverAlarmPlayer.play();
+                }
+            }else {
+                serverAlarmPlayer.stop();
+            }
+        }
+        onAlarmStatusChanged: updateServerAudio()
+        onIsAlarmMutedChanged: updateServerAudio()
     }
 
     Row {
@@ -57,16 +88,30 @@ Window {
         Rectangle {
             width: 450
             height: 70
-            color: "#1e293b"
             radius: 8
-            border.color: "#10b981"
             border.width: 2
             anchors.horizontalCenter: parent.horizontalCenter
+
+            color: {
+                if(udpReceiver.isSpo2AlarmActive ) {
+                    if(udpReceiver.spo2AlarmPriority === 2) return "#ef4444";
+                    else if(udpReceiver.spo2AlarmPriority === 1) return "#eab308";
+                    return "#3b82f6";
+                }
+                return "#1e293b";
+            }
+            border.color: udpReceiver.isSpo2AlarmActive ? "#ffffff" : "#10b981"
+            SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            running: udpReceiver.isSpo2AlarmActive
+                            NumberAnimation { to: 0.4; duration: 500 }
+                            NumberAnimation { to: 1.0; duration: 500 }
+                        }
 
             Text {
                 anchors.centerIn: parent
                 text: "SpO2: " + (udpReceiver.spo2 === 0 ? "--" : udpReceiver.spo2) + " %"
-                color: "#10b981"
+                color: udpReceiver.isSpo2AlarmActive ? "#ffffff" : "#10b981"
                 font.pixelSize: 28
                 font.bold: true
             }
@@ -74,16 +119,29 @@ Window {
         Rectangle {
             width: 450
             height: 70
-            color: "#1e293b"
             radius: 8
-            border.color: "#ef4444"
             border.width: 2
             anchors.horizontalCenter: parent.horizontalCenter
+            color: {
+                if(udpReceiver.isPulseAlarmActive) {
+                    if(udpReceiver.pulseAlarmPriority === 2) return "#ef4444";
+                    else if (udpReceiver.pulseAlarmPriority === 1) return "#eab308";
+                    return "#3b82f6";
+                }
+                return "#1e293b";
+            }
+            border.color: udpReceiver.isPulseAlarmActive ? "#ffffff" : "#10b981"
+            SequentialAnimation on opacity {
+                loops: Animation.Infinite
+                running: udpReceiver.isPulseAlarmActive
+                NumberAnimation {to: 0.4; duration: 500}
+                NumberAnimation {to: 1.0; duration: 500}
+            }
 
             Text {
                 anchors.centerIn: parent
                 text: "Pulse: " + (udpReceiver.pulseRate === 0 ? "--" : udpReceiver.pulseRate) + " bpm"
-                color: "#ef4444"
+                color: udpReceiver.isPulseAlarmActive ? "#ffffff" : "#10b981"
                 font.pixelSize: 28
                 font.bold: true
             }

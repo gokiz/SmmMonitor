@@ -37,12 +37,32 @@ void UdpReceiver::readPendingDatagrams() {
         in.setVersion(QDataStream::Qt_6_0);
 
         int incomingSpeed;
+        bool inSpo2Alarm, inPulseAlarm, inAlarmMuted;
+        int inSpo2Prio, inPulsePrio;
 
-        in >> m_spo2 >> m_pulseRate >> m_waveform >> incomingSpeed;
+        in >> m_spo2 >> m_pulseRate >> m_waveform >> incomingSpeed
+            >> inSpo2Alarm >> inSpo2Prio >> inPulseAlarm >> inPulsePrio
+            >> inAlarmMuted;
+
+        if(m_isAlarmMuted != inAlarmMuted) {
+            m_isAlarmMuted = inAlarmMuted;
+            emit isAlarmMutedChanged();
+        }
 
         if(m_waveformSpeed != incomingSpeed && (incomingSpeed == 25 || incomingSpeed == 50)){
             m_waveformSpeed = incomingSpeed;
             emit waveformSpeedChanged(m_waveformSpeed);
+        }
+
+        if(m_isSpo2AlarmActive != inSpo2Alarm || m_spo2AlarmPriority != inSpo2Prio ||
+            m_isPulseAlarmActive != inPulseAlarm || m_pulseAlarmPriority != inPulsePrio){
+
+            m_isSpo2AlarmActive = inSpo2Alarm;
+            m_spo2AlarmPriority = inSpo2Prio;
+            m_isPulseAlarmActive = inPulseAlarm;
+            m_pulseAlarmPriority = inPulsePrio;
+
+            emit alarmStatusChanged();
         }
 
         if(!m_isConnected){
@@ -62,6 +82,14 @@ void UdpReceiver::connectionLost(){
     m_spo2 = 0;
     m_pulseRate = 0;
     m_waveform = 0;
+
+    if(m_isSpo2AlarmActive || m_isPulseAlarmActive) {
+        m_isSpo2AlarmActive = false;
+        m_isPulseAlarmActive = false;
+        m_spo2AlarmPriority = 0;
+        m_pulseAlarmPriority = 0;
+        emit alarmStatusChanged();
+    }
 
     if(m_isConnected) {
         m_isConnected = false;

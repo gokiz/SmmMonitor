@@ -12,8 +12,13 @@ class UdpReceiver : public QObject
     Q_PROPERTY(int pulseRate READ pulseRate NOTIFY dataReceived)
     Q_PROPERTY(int waveform READ waveform NOTIFY dataReceived)
     Q_PROPERTY(int waveformSpeed READ waveformSpeed NOTIFY waveformSpeedChanged)
-
     Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectionStatusChanged)
+
+    Q_PROPERTY(bool isSpo2AlarmActive READ isSpo2AlarmActive NOTIFY alarmStatusChanged)
+    Q_PROPERTY(int spo2AlarmPriority READ spo2AlarmPriority NOTIFY alarmStatusChanged)
+    Q_PROPERTY(bool isPulseAlarmActive READ isPulseAlarmActive NOTIFY alarmStatusChanged)
+    Q_PROPERTY(int pulseAlarmPriority READ pulseAlarmPriority NOTIFY alarmStatusChanged)
+    Q_PROPERTY(bool isAlarmMuted READ isAlarmMuted NOTIFY isAlarmMutedChanged )
 
 public:
     explicit UdpReceiver(QObject *parent = nullptr);
@@ -25,10 +30,18 @@ public:
     bool isConnected() const;
     int waveformSpeed() const;
 
+    bool isSpo2AlarmActive() const {return m_isSpo2AlarmActive;}
+    int spo2AlarmPriority() const {return m_spo2AlarmPriority;}
+    bool isPulseAlarmActive() const { return m_isPulseAlarmActive; }
+    int pulseAlarmPriority() const { return m_pulseAlarmPriority; }
+    bool isAlarmMuted() const {return m_isAlarmMuted;}
+
 signals:
     void dataReceived();
     void connectionStatusChanged(bool status);
     void waveformSpeedChanged(int speed);
+    void alarmStatusChanged();
+    void isAlarmMutedChanged();
 
 private slots:
     void readPendingDatagrams();
@@ -43,6 +56,12 @@ private:
     int m_waveform = 0;
     bool m_isConnected = false;
     int m_waveformSpeed = 25;
+
+    bool m_isSpo2AlarmActive = false;
+    int m_spo2AlarmPriority = 0;
+    bool m_isPulseAlarmActive = false;
+    int m_pulseAlarmPriority = 0;
+    bool m_isAlarmMuted = false;
 };
 
 #endif // UDPRECEIVER_H

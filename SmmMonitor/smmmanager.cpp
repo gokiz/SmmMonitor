@@ -1284,9 +1284,16 @@ void SmmManager::sendUdpData() {
 
 
     out.setVersion(QDataStream::Qt_6_0);
-    out << m_saturation << m_pulseRate << m_waveform << m_waveformSpeed;
+    out << m_saturation
+        << m_pulseRate
+        << m_waveform
+        << m_waveformSpeed
+        << m_isSpo2AlarmActive
+        << static_cast<int>(m_spo2AlarmPriority)
+        << m_isPulseAlarmActive
+        <<static_cast<int>(m_pulseAlarmPriority)
+        << m_isAlarmMuted;
+
 
     m_udpSocket->writeDatagram(datagram, m_targetIp, m_targetPort);
-
-    qDebug() << "UDP paketi gönderiliyor... SpO2: " << m_saturation;
 }
