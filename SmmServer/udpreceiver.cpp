@@ -1,6 +1,7 @@
 #include "udpreceiver.h"
 #include <QDataStream>
 #include <QDebug>
+#include "aesgcmcrypto.h"
 
 
 UdpReceiver::UdpReceiver(QObject *parent)
@@ -29,11 +30,21 @@ int UdpReceiver::waveformSpeed() const {return m_waveformSpeed;}
 void UdpReceiver::readPendingDatagrams() {
     while (m_udpSocket->hasPendingDatagrams()) {
 
-        QByteArray datagram;
-        datagram.resize(m_udpSocket->pendingDatagramSize());
-        m_udpSocket->readDatagram(datagram.data(), datagram.size());
+        QByteArray encryptedDatagram;
+        encryptedDatagram.resize(m_udpSocket->pendingDatagramSize());
+        m_udpSocket->readDatagram(encryptedDatagram.data(), encryptedDatagram.size());
 
-        QDataStream in(&datagram, QIODevice::ReadOnly);
+        // AES-128 anahtari: SmmManager (istemci) tarafindakiyle BIREBIR AYNI olmali.
+        static const QByteArray SECRET_KEY = QByteArray::fromHex("4A9F2B8D1C7E3A6F91D4C2B8AABBCCDD");
+
+        QByteArray decryptedDatagram = AesGcmCrypto::decrypt(encryptedDatagram, SECRET_KEY);
+        if (decryptedDatagram.isEmpty()) {
+            // Anahtar yanlis, paket bozuk ya da baskasi tarafindan degistirilmis/uydurulmus olabilir.
+            qWarning() << "Gelen UDP paketi dogrulanamadi/cozulemedi, atlaniyor.";
+            continue;
+        }
+
+        QDataStream in(&decryptedDatagram, QIODevice::ReadOnly);
         in.setVersion(QDataStream::Qt_6_0);
 
         int incomingSpeed;

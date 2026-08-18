@@ -1,4 +1,10 @@
-QT += core gui qml quick sql serialport multimedia
+QT += core gui qml quick quickcontrols2 sql serialport multimedia
+# OpenSSL Kütüphane Yolları
+INCLUDEPATH += $$quote(C:/Program Files/OpenSSL-Win64/include)
+
+# Görseldeki konumlarına göre klasörsüz doğrudan DLL yolları:
+LIBS += $$quote(C:/Program Files/OpenSSL-Win64/libcrypto-3-x64.dll)
+LIBS += $$quote(C:/Program Files/OpenSSL-Win64/libssl-3-x64.dll)
 
 
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -9,7 +15,8 @@ SOURCES += \
         main.cpp \
         smmmanager.cpp \
         smmsimulator.cpp \
-        waveformplotter.cpp
+        waveformplotter.cpp \
+        aesgcmcrypto.cpp \
 
 RESOURCES += qml.qrc
 
@@ -27,4 +34,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     smmmanager.h \
     smmsimulator.h \
-    waveformplotter.h
+    waveformplotter.h \
+    aesgcmcrypto.h \

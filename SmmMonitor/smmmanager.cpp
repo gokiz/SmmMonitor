@@ -12,6 +12,7 @@
 #include <QTextStream>
 #include <QFont>
 #include <cmath>
+#include "aesgcmcrypto.h"
 
 namespace {
 int generateRealisticPpgSample(double phase) {
@@ -1294,6 +1295,17 @@ void SmmManager::sendUdpData() {
         <<static_cast<int>(m_pulseAlarmPriority)
         << m_isAlarmMuted;
 
+    // AES-128 anahtari: tam 16 byte (32 hex karakter) olmali. UdpReceiver tarafindaki
+    // anahtarla BIREBIR AYNI olmak zorunda, aksi halde karsi taraf paketi cozemez.
+    static const QByteArray SECRET_KEY = QByteArray::fromHex("4A9F2B8D1C7E3A6F91D4C2B8AABBCCDD");
 
-    m_udpSocket->writeDatagram(datagram, m_targetIp, m_targetPort);
+    QByteArray encryptedPacket = AesGcmCrypto::encrypt(datagram, SECRET_KEY);
+    if (encryptedPacket.isEmpty()) {
+        qWarning() << "UDP paketi AES-128-GCM ile sifrelenemedi, gonderim iptal edildi.";
+        return;
+    }
+
+    qDebug() << "AES-128-GCM ile sifreli paket gonderiliyor (" << encryptedPacket.size() << "byte)";
+
+    m_udpSocket->writeDatagram(encryptedPacket, m_targetIp, m_targetPort);
 }

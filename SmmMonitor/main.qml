@@ -21,6 +21,8 @@ Window {
     property bool demoBlink: false
 
     Component.onCompleted: {
+        smmManager.setTargetIp(ipInput.text);
+
         console.log("averageSecond:", smmManager.averageSecond,
                     "sec4:", SmmManager.sec4,
                     "sec8:", SmmManager.sec8,
@@ -887,7 +889,7 @@ Window {
                 font.pixelSize: 12
 
                 // Placeholder yerine başlangıç değeri veriyoruz
-                text: "127.0.0.1"
+                text: "192.168.5.149"
 
                 // Etrafındaki siyah seçim çizgisini kaldırır
                 selectByMouse: true
