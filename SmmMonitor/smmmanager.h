@@ -287,6 +287,8 @@ private:
     const quint16 m_targetPort = 45454; //sunucunun dinleyeceği port
 
     void sendUdpData();
+
+    quint64 m_udpSequence = 0;
 };
 
 #endif // SMMMANAGER_H

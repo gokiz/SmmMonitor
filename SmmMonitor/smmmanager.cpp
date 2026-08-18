@@ -1285,7 +1285,8 @@ void SmmManager::sendUdpData() {
 
 
     out.setVersion(QDataStream::Qt_6_0);
-    out << m_saturation
+    out <<(++m_udpSequence)
+        <<m_saturation
         << m_pulseRate
         << m_waveform
         << m_waveformSpeed
@@ -1297,7 +1298,7 @@ void SmmManager::sendUdpData() {
 
     // AES-128 anahtari: tam 16 byte (32 hex karakter) olmali. UdpReceiver tarafindaki
     // anahtarla BIREBIR AYNI olmak zorunda, aksi halde karsi taraf paketi cozemez.
-    static const QByteArray SECRET_KEY = QByteArray::fromHex("4A9F2B8D1C7E3A6F91D4C2B8AABBCCDD");
+    static const QByteArray SECRET_KEY = AesGcmCrypto::loadKeyFromEnv();
 
     QByteArray encryptedPacket = AesGcmCrypto::encrypt(datagram, SECRET_KEY);
     if (encryptedPacket.isEmpty()) {
@@ -1305,7 +1306,10 @@ void SmmManager::sendUdpData() {
         return;
     }
 
-    qDebug() << "AES-128-GCM ile sifreli paket gonderiliyor (" << encryptedPacket.size() << "byte)";
+    static int packetCounter = 0;
+    if (++packetCounter % 100 == 0) {
+        qDebug() << "AES-128-GCM ile sifreli paket gonderiliyor (" << encryptedPacket.size() << "byte), toplam:" << packetCounter;
+    }
 
     m_udpSocket->writeDatagram(encryptedPacket, m_targetIp, m_targetPort);
 }

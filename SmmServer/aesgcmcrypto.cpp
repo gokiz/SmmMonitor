@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <QProcessEnvironment>
 
 QByteArray AesGcmCrypto::encrypt(const QByteArray &plaintext, const QByteArray &key) {
     if(key.size() != KeySize) {
@@ -122,4 +123,17 @@ QByteArray AesGcmCrypto::decrypt(const QByteArray &packet, const QByteArray &key
     plaintext.resize(plaintextLen);
     return plaintext;
 }
-// DÜZELTME 3: Dosya sonundaki gereksiz ekstra '}' silindi.
+
+QByteArray AesGcmCrypto::loadKeyFromEnv(const char *envVarName) {
+    const QString hexKey = QProcessEnvironment::systemEnvironment().value(envVarName);
+    if (hexKey.isEmpty()) {
+        qWarning() << "AES anahtari ortafam degiskeninde bulunamadi: " << envVarName;
+        return QByteArray();
+    }
+    QByteArray key = QByteArray::fromHex(hexKey.toUtf8());
+    if(key.size() != KeySize) {
+        qWarning() << "AES anahtari yanlis uzunlukta!";
+        return QByteArray();
+    }
+    return key;
+}

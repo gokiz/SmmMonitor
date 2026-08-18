@@ -62,6 +62,8 @@ private:
     bool m_isPulseAlarmActive = false;
     int m_pulseAlarmPriority = 0;
     bool m_isAlarmMuted = false;
+
+    quint64 m_lastSequence = 0;
 };
 
 #endif // UDPRECEIVER_H

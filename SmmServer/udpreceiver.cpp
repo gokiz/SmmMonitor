@@ -35,7 +35,7 @@ void UdpReceiver::readPendingDatagrams() {
         m_udpSocket->readDatagram(encryptedDatagram.data(), encryptedDatagram.size());
 
         // AES-128 anahtari: SmmManager (istemci) tarafindakiyle BIREBIR AYNI olmali.
-        static const QByteArray SECRET_KEY = QByteArray::fromHex("4A9F2B8D1C7E3A6F91D4C2B8AABBCCDD");
+       static const QByteArray SECRET_KEY = AesGcmCrypto::loadKeyFromEnv();
 
         QByteArray decryptedDatagram = AesGcmCrypto::decrypt(encryptedDatagram, SECRET_KEY);
         if (decryptedDatagram.isEmpty()) {
@@ -50,6 +50,13 @@ void UdpReceiver::readPendingDatagrams() {
         int incomingSpeed;
         bool inSpo2Alarm, inPulseAlarm, inAlarmMuted;
         int inSpo2Prio, inPulsePrio;
+        quint64 incomingSeq;
+        in >> incomingSeq;
+        if(incomingSeq <= m_lastSequence) {
+            qWarning() << "Eski/tekrarlanan paket reddedildi (replay şüphesi). Seq:" <<incomingSeq;
+            continue;
+        }
+        m_lastSequence = incomingSeq;
 
         in >> m_spo2 >> m_pulseRate >> m_waveform >> incomingSpeed
             >> inSpo2Alarm >> inSpo2Prio >> inPulseAlarm >> inPulsePrio
