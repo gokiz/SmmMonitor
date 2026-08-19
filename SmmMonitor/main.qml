@@ -32,7 +32,6 @@ Window {
 
     function stopDemoMode() {
         smmSimulator.stopDemo();
-        smmManager.disconnectPort();
         isDemoActive = false;
 
         wavePlotter.clear();

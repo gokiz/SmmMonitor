@@ -137,6 +137,7 @@ void SmmManager::connectToModule(const QString &portName) {
             m_isPortConnected = true;
             emit isPortConnectedChanged(m_isPortConnected);
         }
+        initializeBiolightModule();
 
         m_watchdogTimer->start(1000); // port açıldığında 1 saniyelik geri sayımı başlat
     } else {
@@ -1059,9 +1060,50 @@ void SmmManager::setDemoMode(bool isDemo) {
         if(m_demoWaveformTimer && !m_demoWaveformTimer->isActive()) {
             m_demoWaveformTimer->start(40);
         }
+        if(!m_isPortConnected) {
+            m_isPortConnected = true;
+            emit isPortConnectedChanged(m_isPortConnected);
+        }
     } else {
         if(m_demoWaveformTimer && m_demoWaveformTimer->isActive()) {
             m_demoWaveformTimer->stop();
+        }
+    }
+
+    m_saturation = 0;
+    m_pulseRate = 0;
+    m_waveform = 0;
+    m_isSignalWeak = false;
+    m_beepVoice = false;
+    m_pulseSearch = false;
+
+    emit saturationChanged(m_saturation);
+    emit pulseRateChanged(m_pulseRate);
+    emit waveformChanged(m_waveform);
+    emit isSignalWeakChanged(m_isSignalWeak);
+    emit beepVoiceChanged(m_beepVoice);
+    emit pulseSearchChanged(m_pulseSearch);
+
+    m_buffer.clear();
+
+    bool isActuallyOpen = (m_serialPort && m_serialPort->isOpen()) ;
+
+
+    if(m_isPortConnected != isActuallyOpen) {
+        m_isPortConnected = isActuallyOpen;
+        emit isPortConnectedChanged(m_isPortConnected);
+    }
+
+    if(isActuallyOpen) {
+        initializeBiolightModule();
+        m_watchdogTimer->start(1000);
+    } else {
+        if(!m_hasConnectionError) {
+            m_hasConnectionError = true;
+            emit hasConnectionErrorChanged(m_hasConnectionError);
+        }
+        if (m_reconnectTimer && !m_reconnectTimer->isActive()) {
+            m_reconnectTimer->start(2000);
         }
     }
 }
