@@ -12,7 +12,7 @@ public:
     static constexpr int TagSize = 16;
 
     // Fonksiyonlar static olmalı ki obje üretmeden çağrılabilsin
-    static QByteArray encrypt(const QByteArray &plaintext, const QByteArray &key);
+    static QByteArray encrypt(const QByteArray &plaintext, const QByteArray &key, bool logDetails = false);
     static QByteArray decrypt(const QByteArray &packet, const QByteArray &key);
     static QByteArray loadKeyFromEnv(const char *envVarName = "SMM_AES_KEY");
 };

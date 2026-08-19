@@ -4,7 +4,7 @@
 #include <openssl/rand.h>
 #include <QProcessEnvironment>
 
-QByteArray AesGcmCrypto::encrypt(const QByteArray &plaintext, const QByteArray &key) {
+QByteArray AesGcmCrypto::encrypt(const QByteArray &plaintext, const QByteArray &key, bool logDetails) {
     if(key.size() != KeySize) {
         qWarning() << "AesGcmCrypto::encrypt - anahtar uzunlugu tam 16 byte olmali!";
         return QByteArray();
@@ -59,6 +59,15 @@ QByteArray AesGcmCrypto::encrypt(const QByteArray &plaintext, const QByteArray &
     if (!ok) return QByteArray();
 
     ciphertext.resize(ciphertextLen);
+
+    if(logDetails) {
+        qDebug() << "\nSıfreleme Detaylar";
+        qDebug() << "1.Ham Veri (plaintext): " << plaintext.toHex().toUpper();
+        qDebug() << "2.Uretilen IV (rastgele): " << iv.toHex().toUpper();
+        qDebug() << "3.Sıfrelenmis Veri : " << ciphertext.toHex().toUpper();
+        qDebug() << "4.Dogrulama Muhru(Tag): " << tag.toHex().toUpper();
+        qDebug() << "==================\n";
+    }
 
     QByteArray packet;
     packet.reserve(IvSize + ciphertextLen + TagSize);

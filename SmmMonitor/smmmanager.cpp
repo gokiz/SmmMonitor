@@ -1322,35 +1322,37 @@ void SmmManager::setTargetIp(const QString &ipAddress) {
 void SmmManager::sendUdpData() {
     if(m_targetIp.isNull()) return;
 
+    static int lastLoggedSpo2  =-1;
+    static int lastLoggedPulse = -1;
+    bool shouldLog = (m_saturation != lastLoggedSpo2 || m_pulseRate != lastLoggedPulse);
+    if(shouldLog) {
+        qDebug() << " \n[Veri degisimi tespit edildi- Sifreleme oncesi]";
+        qDebug() << "Spo2:" << m_saturation << "PulseRate: " << m_pulseRate
+                 << "Sequence:" << (m_udpSequence + 1);
+
+        lastLoggedSpo2 = m_saturation;
+        lastLoggedPulse = m_pulseRate;
+    }
+
     QByteArray datagram;
     QDataStream out(&datagram, QIODevice::WriteOnly);
-
-
     out.setVersion(QDataStream::Qt_6_0);
-    out <<(++m_udpSequence)
-        <<m_saturation
+    out << (++m_udpSequence)
+        << m_saturation
         << m_pulseRate
         << m_waveform
         << m_waveformSpeed
         << m_isSpo2AlarmActive
         << static_cast<int>(m_spo2AlarmPriority)
         << m_isPulseAlarmActive
-        <<static_cast<int>(m_pulseAlarmPriority)
+        << static_cast<int>(m_pulseAlarmPriority)
         << m_isAlarmMuted;
 
-    // AES-128 anahtari: tam 16 byte (32 hex karakter) olmali. UdpReceiver tarafindaki
-    // anahtarla BIREBIR AYNI olmak zorunda, aksi halde karsi taraf paketi cozemez.
     static const QByteArray SECRET_KEY = AesGcmCrypto::loadKeyFromEnv();
-
-    QByteArray encryptedPacket = AesGcmCrypto::encrypt(datagram, SECRET_KEY);
+    QByteArray encryptedPacket = AesGcmCrypto::encrypt(datagram, SECRET_KEY, shouldLog);
     if (encryptedPacket.isEmpty()) {
         qWarning() << "UDP paketi AES-128-GCM ile sifrelenemedi, gonderim iptal edildi.";
         return;
-    }
-
-    static int packetCounter = 0;
-    if (++packetCounter % 100 == 0) {
-        qDebug() << "AES-128-GCM ile sifreli paket gonderiliyor (" << encryptedPacket.size() << "byte), toplam:" << packetCounter;
     }
 
     m_udpSocket->writeDatagram(encryptedPacket, m_targetIp, m_targetPort);
