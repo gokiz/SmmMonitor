@@ -13,6 +13,7 @@ LIBS += $$quote(C:/Program Files/OpenSSL-Win64/libssl-3-x64.dll)
 CONFIG += c++11
 SOURCES += \
         main.cpp \
+    networkutils.cpp \
         smmmanager.cpp \
         smmsimulator.cpp \
         waveformplotter.cpp \
@@ -32,6 +33,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    networkutils.h \
     smmmanager.h \
     smmsimulator.h \
     waveformplotter.h \

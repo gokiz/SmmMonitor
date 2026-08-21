@@ -13,6 +13,7 @@
 #include <QFont>
 #include <cmath>
 #include "aesgcmcrypto.h"
+#include "networkutils.h"
 
 namespace {
 int generateRealisticPpgSample(double phase) {
@@ -85,6 +86,11 @@ SmmManager::SmmManager(QObject *parent)
     connect(m_demoWaveformTimer, &QTimer::timeout, this, &SmmManager::updateDemoWaveform);
 
     m_udpSocket = new QUdpSocket(this); //memory leak olmaması için this veriyoruz
+
+    m_clientMac = NetworkUtils::getValidMacAddress();
+    if(m_clientMac.isEmpty()) {
+        qWarning() << "[SECURITY] No valid MAC address found!";
+    }
 
 }
 SmmManager::~SmmManager()
@@ -1338,6 +1344,7 @@ void SmmManager::sendUdpData() {
     QDataStream out(&datagram, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_6_0);
     out << (++m_udpSequence)
+        << m_clientMac
         << m_saturation
         << m_pulseRate
         << m_waveform

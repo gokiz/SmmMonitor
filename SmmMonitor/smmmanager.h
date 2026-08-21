@@ -289,6 +289,7 @@ private:
     void sendUdpData();
 
     quint64 m_udpSequence = 0;
+    QString m_clientMac;
 };
 
 #endif // SMMMANAGER_H
